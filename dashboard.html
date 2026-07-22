@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ledger &amp; Commission — Finance Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0E1F3B; --navy-light:#17325C; --navy-deep:#081428;
+    --gold:#C9A227; --gold-light:#E4C55E;
+    --emerald:#12946B; --emerald-light:#E5F5EF;
+    --coral:#E4572E; --coral-light:#FDEAE4;
+    --purple:#6C4AB6; --purple-light:#EFE9FB;
+    --teal:#0E8E8E; --teal-light:#E1F4F4;
+    --bg:#F4F6FA; --card:#FFFFFF; --ink:#1B2430; --muted:#6B7686; --border:#E3E7EF;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;}
+  h1,h2,h3,h4{font-family:'Fraunces',serif;margin:0;letter-spacing:-0.01em;}
+  .mono{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;}
+  button,input,select,textarea{font-family:inherit;font-size:14px;}
+  a{color:inherit;}
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-thumb{background:#c7cede;border-radius:4px;}
+
+  /* ---- Auth screens ---- */
+  #authScreen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 20% 20%, var(--navy-light), var(--navy-deep) 70%);padding:24px;}
+  .auth-card{background:var(--card);width:100%;max-width:420px;border-radius:14px;padding:36px 34px;
+    box-shadow:0 30px 60px rgba(0,0,0,.35);border-top:4px solid var(--gold);}
+  .auth-brand{display:flex;align-items:center;gap:10px;margin-bottom:22px;}
+  .auth-brand .mark{width:38px;height:38px;border-radius:8px;background:var(--navy);color:var(--gold);
+    display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:700;font-size:18px;}
+  .auth-brand h1{font-size:19px;color:var(--navy);}
+  .auth-brand span{font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;}
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;}
+  .field input,.field select,.field textarea{width:100%;padding:11px 12px;border:1.5px solid var(--border);
+    border-radius:8px;background:#fbfcfe;transition:.15s;}
+  .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--gold);background:#fff;}
+  .btn{cursor:pointer;border:none;border-radius:8px;padding:11px 18px;font-weight:600;transition:.15s;display:inline-flex;align-items:center;gap:6px;}
+  .btn-primary{background:var(--navy);color:#fff;width:100%;justify-content:center;}
+  .btn-primary:hover{background:var(--navy-light);}
+  .btn-gold{background:var(--gold);color:var(--navy-deep);}
+  .btn-gold:hover{background:var(--gold-light);}
+  .btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--ink);}
+  .btn-outline:hover{border-color:var(--navy);}
+  .btn-danger{background:var(--coral-light);color:var(--coral);}
+  .btn-danger:hover{background:var(--coral);color:#fff;}
+  .btn-emerald{background:var(--emerald);color:#fff;}
+  .btn-emerald:hover{background:#0d7d5a;}
+  .btn-sm{padding:6px 10px;font-size:12px;border-radius:6px;}
+  .auth-toggle{text-align:center;margin-top:16px;font-size:13px;color:var(--muted);}
+  .msg{font-size:13px;padding:10px 12px;border-radius:7px;margin-bottom:14px;display:none;}
+  .msg.error{background:var(--coral-light);color:var(--coral);display:block;}
+  .msg.ok{background:var(--emerald-light);color:var(--emerald);display:block;}
+  .hint{font-size:12px;color:var(--muted);margin-top:-8px;margin-bottom:16px;line-height:1.5;}
+  .app-credit{text-align:center;color:#8fa0c2;font-size:11.5px;margin-top:20px;line-height:1.6;}
+  .app-credit b{color:#d7deee;}
+  .app-credit a{color:var(--gold-light);text-decoration:none;}
+
+  /* ---- App shell ---- */
+  #appScreen{display:none;min-height:100vh;}
+  .shell{display:grid;grid-template-columns:250px 1fr;min-height:100vh;}
+  .sidebar{background:var(--navy-deep);color:#cfd8ea;display:flex;flex-direction:column;position:relative;}
+  .sidebar::after{content:"";position:absolute;top:0;bottom:0;right:0;width:4px;background:linear-gradient(var(--gold),var(--teal),var(--emerald));}
+  .side-brand{padding:26px 22px 20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;gap:10px;align-items:center;}
+  .side-brand .mark{width:34px;height:34px;border-radius:7px;background:var(--gold);color:var(--navy-deep);
+    display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:700;}
+  .side-brand h1{color:#fff;font-size:16px;}
+  .side-brand span{font-size:10px;color:#8fa0c2;letter-spacing:.08em;text-transform:uppercase;}
+  .side-user{padding:16px 22px;border-bottom:1px solid rgba(255,255,255,.08);}
+  .side-user .name{color:#fff;font-weight:600;font-size:14px;}
+  .side-user .role{font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+  nav{padding:14px 12px;flex:1;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:8px;cursor:pointer;
+    font-size:13.5px;font-weight:500;color:#b7c2da;margin-bottom:3px;transition:.15s;}
+  .nav-item:hover{background:rgba(255,255,255,.06);color:#fff;}
+  .nav-item.active{background:var(--gold);color:var(--navy-deep);font-weight:700;}
+  .nav-item .ic{width:18px;text-align:center;}
+  .side-foot{padding:14px 22px;border-top:1px solid rgba(255,255,255,.08);}
+  .side-credit{padding:12px 22px 18px;font-size:10.5px;color:#6d7ea3;line-height:1.6;}
+  .side-credit b{color:#c9d3e8;}
+
+  .main{padding:28px 34px;overflow-x:hidden;}
+  .topbar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:26px;flex-wrap:wrap;gap:12px;}
+  .topbar h2{font-size:26px;color:var(--navy);}
+  .topbar p{color:var(--muted);font-size:13px;margin-top:4px;}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px;margin-bottom:26px;}
+  .stat{border-radius:12px;padding:18px 20px;border:1px solid var(--border);
+    box-shadow:0 2px 8px rgba(20,30,60,.05);position:relative;overflow:hidden;}
+  .stat .tag{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;}
+  .stat .val{font-size:23px;font-weight:600;margin-top:6px;}
+  .stat .ic2{position:absolute;right:14px;top:14px;font-size:22px;opacity:.35;}
+  .stat.gold{border-left:4px solid var(--gold);background:linear-gradient(135deg,#fff,#FBF4DC 120%);}
+  .stat.emerald{border-left:4px solid var(--emerald);background:linear-gradient(135deg,#fff,var(--emerald-light) 120%);}
+  .stat.coral{border-left:4px solid var(--coral);background:linear-gradient(135deg,#fff,var(--coral-light) 120%);}
+  .stat.navy{border-left:4px solid var(--navy);background:linear-gradient(135deg,#fff,#E7ECF6 120%);}
+  .stat.purple{border-left:4px solid var(--purple);background:linear-gradient(135deg,#fff,var(--purple-light) 120%);}
+  .stat.teal{border-left:4px solid var(--teal);background:linear-gradient(135deg,#fff,var(--teal-light) 120%);}
+
+  .card{background:var(--card);border-radius:12px;border:1px solid var(--border);padding:22px;margin-bottom:20px;
+    box-shadow:0 2px 8px rgba(20,30,60,.04);}
+  .card h3{font-size:16px;color:var(--navy);margin-bottom:16px;}
+  .row{display:flex;gap:14px;flex-wrap:wrap;}
+  .row .field{flex:1;min-width:160px;}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;padding:10px 12px;background:#F7F9FC;color:var(--muted);font-size:11px;text-transform:uppercase;
+    letter-spacing:.04em;font-weight:700;border-bottom:2px solid var(--border);white-space:nowrap;}
+  td{padding:11px 12px;border-bottom:1px solid var(--border);vertical-align:top;}
+  tr:hover td{background:#FAFBFD;}
+  .chip{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;}
+  .chip.emerald{background:var(--emerald-light);color:var(--emerald);}
+  .chip.coral{background:var(--coral-light);color:var(--coral);}
+  .chip.gold{background:#FBF2D9;color:#8A6D0E;}
+  .chip.navy{background:#E7ECF6;color:var(--navy);}
+  .chip.purple{background:var(--purple-light);color:var(--purple);}
+  .chip.teal{background:var(--teal-light);color:var(--teal);}
+  .empty{text-align:center;padding:40px 20px;color:var(--muted);}
+  .empty .ic{font-size:32px;margin-bottom:8px;}
+
+  .paylist{display:flex;flex-direction:column;gap:4px;min-width:170px;}
+  .payitem{display:flex;align-items:center;gap:6px;font-size:11.5px;background:#F7F9FC;border-radius:6px;padding:3px 7px;}
+  .payitem .del{color:var(--coral);cursor:pointer;font-weight:700;margin-left:auto;}
+
+  .comments-box{background:#F8F9FC;border-radius:8px;padding:12px 14px;margin-top:6px;}
+  .comment{padding:8px 0;border-bottom:1px dashed var(--border);font-size:12.5px;}
+  .comment:last-child{border-bottom:none;}
+  .comment .who{font-weight:700;color:var(--navy);}
+  .comment .when{color:var(--muted);font-size:10.5px;margin-left:6px;}
+  .comment-form{display:flex;gap:8px;margin-top:8px;}
+  .comment-form textarea{flex:1;resize:none;height:38px;padding:8px 10px;border-radius:6px;border:1.5px solid var(--border);}
+  .toggle-comments{font-size:11.5px;color:var(--navy);cursor:pointer;font-weight:600;text-decoration:underline;}
+
+  .tabs{display:flex;gap:6px;margin-bottom:18px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+  .tab{padding:9px 16px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;}
+  .tab.active{color:var(--navy);border-bottom-color:var(--gold);}
+
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(10,18,35,.55);z-index:50;align-items:center;justify-content:center;padding:20px;}
+  .modal-bg.show{display:flex;}
+  .modal{background:#fff;border-radius:12px;padding:26px;width:100%;max-width:460px;max-height:88vh;overflow:auto;}
+  .modal h3{margin-bottom:16px;color:var(--navy);}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:18px;}
+
+  .userpicker{margin-bottom:16px;}
+  .note{font-size:12px;color:var(--muted);background:#F7F9FC;border-radius:8px;padding:10px 12px;line-height:1.6;}
+  .match-panel{background:var(--emerald-light);border:1.5px solid var(--emerald);border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:13px;}
+  .match-panel.new{background:#F3F6FC;border-color:var(--border);}
+  .svc-chip{display:inline-flex;align-items:center;gap:7px;background:#F0F2F7;padding:6px 12px;border-radius:16px;font-size:12.5px;margin:3px;}
+  .svc-chip .x{cursor:pointer;color:var(--coral);font-weight:700;}
+  .search-row{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;}
+  .search-row input, .search-row select{padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;background:#fff;min-width:160px;}
+
+  @media (max-width:880px){
+    .shell{grid-template-columns:1fr;}
+    .sidebar{position:sticky;top:0;z-index:10;}
+    nav{display:flex;overflow-x:auto;padding:8px;}
+    .nav-item{white-space:nowrap;}
+    .side-user,.side-foot,.side-credit{display:none;}
+  }
+  @media print{
+    .sidebar,.topbar .btn,.no-print,.comments-box,.toggle-comments{display:none !important;}
+    .shell{display:block;}
+    .main{padding:0;}
+    body{background:#fff;}
+    .card{box-shadow:none;border:1px solid #ccc;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= AUTH ================= -->
+<div id="authScreen">
+  <div class="auth-card" id="authCard"></div>
+  <div class="app-credit">Software created by <b>O2 Nexus Global</b><br>Contact: <a href="mailto:otngqa@gmail.com">otngqa@gmail.com</a></div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="appScreen">
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="side-brand">
+        <div class="mark">L</div>
+        <div><h1>Ledger &amp; Co.</h1><span>Finance Dashboard</span></div>
+      </div>
+      <div class="side-user">
+        <div class="name" id="sideUserName"></div>
+        <div class="role" id="sideUserRole"></div>
+      </div>
+      <nav id="navList"></nav>
+      <div class="side-foot">
+        <button id="syncBtn" class="btn btn-gold" style="width:100%;margin-bottom:8px;justify-content:center;" onclick="manualSync()">🔄 Sync Now</button>
+        <button class="btn btn-outline" style="width:100%;color:#fff;border-color:rgba(255,255,255,.25)" onclick="logout()">Sign out</button>
+      </div>
+      <div class="side-credit">Software created by <b>O2 Nexus Global</b><br>otngqa@gmail.com</div>
+    </aside>
+    <main class="main" id="mainContent"></main>
+  </div>
+</div>
+
+<!-- generic modal -->
+<div class="modal-bg" id="modalBg"><div class="modal" id="modalBody"></div></div>
+
+<script>
+/* ============================================================
+   API CLIENT — talks to the Flask backend. This is a real live
+   server: every signed-in user and the admin share one database
+   over the internet, so there's no manual sync step needed; a
+   short poll (see startAutoSync) just keeps open screens fresh.
+   ============================================================ */
+async function api(method, path, body){
+  const opts = { method, headers: {}, credentials: 'same-origin' };
+  if(body !== undefined){ opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
+  const res = await fetch(path, opts);
+  let data = null;
+  try{ data = await res.json(); }catch(e){ data = null; }
+  if(!res.ok){ throw new Error((data && data.error) || ('Request failed ('+res.status+')')); }
+  return data;
+}
+
+const DEFAULT_SERVICES = ["Travel","Accommodation","Meals & Entertainment","Office Supplies","Transportation","Client Gifts","Software & Subscriptions","Miscellaneous"];
+const CHIP_COLORS = ['navy','gold','emerald','coral','purple','teal'];
+function catColor(cat){ let h=0; for(let i=0;i<String(cat).length;i++) h=(h*31+cat.charCodeAt(i))>>>0; return CHIP_COLORS[h % CHIP_COLORS.length]; }
+
+/* Background refresh: while signed in, periodically pull the latest
+   shared data so open screens stay current even if someone else on
+   another computer just saved something. Also a manual "Sync now"
+   button for an instant refresh. */
+let syncTimer = null;
+async function pullLatestData(){
+  if(!state.session) return false;
+  try{
+    const calls = [ api('GET','/api/orders'), api('GET','/api/services'), api('GET','/api/config') ];
+    if(state.session.role==='admin') calls.push(api('GET','/api/users'));
+    const results = await Promise.all(calls);
+    const [orders, services, config, users] = results;
+    let changed = false;
+    if(JSON.stringify(orders)!==JSON.stringify(state.orders)){ state.orders = orders; changed = true; }
+    if(JSON.stringify(services)!==JSON.stringify(state.services)){ state.services = services; changed = true; }
+    if(config.globalCommissionPct !== state.config.globalCommissionPct){ state.config.globalCommissionPct = config.globalCommissionPct; changed = true; }
+    if(users && JSON.stringify(users)!==JSON.stringify(state.users)){ state.users = users; changed = true; }
+    if(changed) renderView();
+    return changed;
+  }catch(e){ console.error('sync error', e); return false; }
+}
+function startAutoSync(){
+  if(syncTimer) clearInterval(syncTimer);
+  syncTimer = setInterval(pullLatestData, 6000);
+}
+async function manualSync(){
+  const changed = await pullLatestData();
+  const btn = document.getElementById('syncBtn');
+  if(btn){ const old=btn.textContent; btn.textContent = changed? '✅ Synced — new data found' : '✅ Already up to date'; setTimeout(()=>{ btn.textContent = old; },2000); }
+}
+
+let state = {
+  users: [], orders: [], services: [],
+  config: { globalCommissionPct: 5, setupDone: false },
+  session: null,
+  view: 'overview',
+  reportUserFilter: 'all',
+  reportPeriod: 'daily',
+  searchQuery: '',
+  searchCategory: 'all',
+};
+
+function uid(){ return 'o' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function money(n){ n = Number(n)||0; return n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function sumPayments(o){ return (o.payments||[]).reduce((s,p)=>s+Number(p.amount||0),0); }
+function orderBalance(o){ return Number(o.amountTotal||0) - sumPayments(o); }
+function orderCommission(o){ return sumPayments(o) * ((o.commissionPct||0)/100); }
+function sumField(list, f){ return list.reduce((s,e)=>s+Number(e[f]||0),0); }
+
+/* ============================================================
+   BOOTSTRAP  (with migration from the old single-payment format)
+   ============================================================ */
+async function boot(){
+  try{
+    const status = await api('GET','/api/setup-status');
+    if(!status.setupDone){ renderSetup(); return; }
+  }catch(e){ /* fall through to login either way */ }
+  try{
+    const me = await api('GET','/api/session');
+    if(me){
+      state.session = me;
+      await loadAllData();
+      renderApp();
+      startAutoSync();
+      return;
+    }
+  }catch(e){}
+  renderLogin();
+}
+boot();
+
+async function loadAllData(){
+  const calls = [ api('GET','/api/orders'), api('GET','/api/services'), api('GET','/api/config') ];
+  if(state.session.role==='admin') calls.push(api('GET','/api/users'));
+  const results = await Promise.all(calls);
+  state.orders = results[0];
+  state.services = results[1];
+  state.config.globalCommissionPct = results[2].globalCommissionPct;
+  if(results[3]) state.users = results[3];
+}
+
+/* ============================================================
+   AUTH SCREENS
+   ============================================================ */
+function renderSetup(){
+  document.getElementById('authScreen').style.display='flex';
+  document.getElementById('appScreen').style.display='none';
+  document.getElementById('authCard').innerHTML = `
+    <div class="auth-brand"><div class="mark">L</div><div><h1>Welcome</h1><span>First-time setup</span></div></div>
+    <div id="authMsg"></div>
+    <p class="hint">Create the administrator account. You will use this username and password to sign in and manage every user from here on. You can change it later from Settings.</p>
+    <div class="field"><label>Admin username</label><input id="su_user" placeholder="e.g. admin"></div>
+    <div class="field"><label>Admin password</label><input id="su_pass" type="password" placeholder="Choose a password"></div>
+    <div class="field"><label>Confirm password</label><input id="su_pass2" type="password" placeholder="Repeat password"></div>
+    <div class="field"><label>Default commission % (can change anytime)</label><input id="su_comm" type="number" value="5" min="0" max="100" step="0.5"></div>
+    <button class="btn btn-primary" onclick="doSetup()">Create Admin Account</button>
+  `;
+}
+
+async function doSetup(){
+  const u = document.getElementById('su_user').value.trim();
+  const p = document.getElementById('su_pass').value;
+  const p2 = document.getElementById('su_pass2').value;
+  const comm = parseFloat(document.getElementById('su_comm').value) || 0;
+  const msg = document.getElementById('authMsg');
+  if(!u || !p){ msg.innerHTML = `<div class="msg error">Username and password are required.</div>`; return; }
+  if(p !== p2){ msg.innerHTML = `<div class="msg error">Passwords do not match.</div>`; return; }
+  try{
+    await api('POST','/api/setup',{ username:u, password:p, commissionPct:comm });
+    await api('POST','/api/logout');
+    renderLogin('Admin account created — sign in below.');
+  }catch(e){ msg.innerHTML = `<div class="msg error">${esc(e.message)}</div>`; }
+}
+
+function renderLogin(okMsg){
+  document.getElementById('authScreen').style.display='flex';
+  document.getElementById('appScreen').style.display='none';
+  document.getElementById('authCard').innerHTML = `
+    <div class="auth-brand"><div class="mark">L</div><div><h1>Sign in</h1><span>Ledger &amp; Commission</span></div></div>
+    <div id="authMsg">${okMsg?`<div class="msg ok">${esc(okMsg)}</div>`:''}</div>
+    <div class="field"><label>Username</label><input id="li_user" placeholder="Your username"></div>
+    <div class="field"><label>Password</label><input id="li_pass" type="password" placeholder="Your password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="btn btn-primary" onclick="doLogin()">Sign in</button>
+    <p class="hint" style="margin-top:14px;text-align:center;">Forgot your password? Ask your administrator to reset it from Manage Users.</p>
+  `;
+}
+
+async function doLogin(){
+  const u = document.getElementById('li_user').value.trim();
+  const p = document.getElementById('li_pass').value;
+  const msg = document.getElementById('authMsg');
+  try{
+    const me = await api('POST','/api/login',{ username:u, password:p });
+    state.session = me;
+    state.view = 'overview'; state.searchQuery=''; state.searchCategory='all'; state.reportUserFilter='all';
+    await loadAllData();
+    renderApp();
+    startAutoSync();
+  }catch(e){ msg.innerHTML = `<div class="msg error">${esc(e.message)}</div>`; }
+}
+
+async function logout(){
+  if(syncTimer) clearInterval(syncTimer);
+  try{ await api('POST','/api/logout'); }catch(e){}
+  state.session = null;
+  renderLogin();
+}
+
+/* ============================================================
+   APP SHELL
+   ============================================================ */
+function navItemsFor(role){
+  if(role==='admin'){
+    return [
+      ['overview','📊','Overview'],
+      ['allEntries','📒','All Orders'],
+      ['reports','🖨️','Reports'],
+      ['byCategory','🗂️','By Category'],
+      ['users','👥','Manage Users'],
+      ['settings','⚙️','Settings'],
+    ];
+  }
+  return [
+    ['overview','📊','Overview'],
+    ['addEntry','➕','Add Entry'],
+    ['myEntries','📒','My Orders'],
+    ['reports','🖨️','My Reports'],
+    ['settings','⚙️','Settings'],
+  ];
+}
+
+function renderApp(){
+  document.getElementById('authScreen').style.display='none';
+  document.getElementById('appScreen').style.display='block';
+  document.getElementById('sideUserName').textContent = state.session.username;
+  document.getElementById('sideUserRole').textContent = state.session.role === 'admin' ? 'Administrator' : 'User';
+  const nav = document.getElementById('navList');
+  nav.innerHTML = navItemsFor(state.session.role).map(([key,ic,label])=>
+    `<div class="nav-item ${state.view===key?'active':''}" onclick="switchView('${key}')"><span class="ic">${ic}</span>${label}</div>`
+  ).join('');
+  renderView();
+}
+
+function switchView(v){ state.view=v; renderApp(); }
+
+function renderView(){
+  const c = document.getElementById('mainContent');
+  const role = state.session.role;
+  if(state.view==='overview') c.innerHTML = role==='admin' ? overviewAdminHTML() : overviewUserHTML();
+  else if(state.view==='addEntry') c.innerHTML = addEntryHTML();
+  else if(state.view==='myEntries') c.innerHTML = myEntriesHTML();
+  else if(state.view==='allEntries') c.innerHTML = allEntriesHTML();
+  else if(state.view==='reports') c.innerHTML = reportsHTML();
+  else if(state.view==='byCategory') c.innerHTML = byCategoryHTML();
+  else if(state.view==='users') c.innerHTML = manageUsersHTML();
+  else if(state.view==='settings') c.innerHTML = settingsHTML();
+  if(state.view==='addEntry') checkCompanyMatch();
+}
+
+function myOrders(){ return state.orders.filter(o=>o.username===state.session.username).sort((a,b)=>b.date.localeCompare(a.date)); }
+
+/* ============================================================
+   OVERVIEW
+   ============================================================ */
+function overviewUserHTML(){
+  const list = myOrders();
+  const sales = sumField(list,'amountTotal');
+  const received = list.reduce((s,o)=>s+sumPayments(o),0);
+  const remaining = sales - received;
+  const commission = list.reduce((s,o)=>s+orderCommission(o),0);
+  const month = todayStr().slice(0,7);
+  const thisMonth = list.filter(e=>e.date.startsWith(month));
+  return `
+  <div class="topbar"><div><h2>Welcome back, ${esc(state.session.username)}</h2><p>Here's a snapshot of everything you've recorded.</p></div>
+    <button class="btn btn-gold" onclick="switchView('addEntry')">➕ Add Entry</button></div>
+  <div class="cards">
+    <div class="stat navy"><span class="ic2">📦</span><div class="tag">Total Orders</div><div class="val">${list.length}</div></div>
+    <div class="stat gold"><span class="ic2">💰</span><div class="tag">Total Sales Amount</div><div class="val mono">${money(sales)}</div></div>
+    <div class="stat teal"><span class="ic2">✅</span><div class="tag">Received So Far</div><div class="val mono">${money(received)}</div></div>
+    <div class="stat coral"><span class="ic2">⏳</span><div class="tag">Remaining Balance</div><div class="val mono">${money(remaining)}</div></div>
+    <div class="stat emerald"><span class="ic2">🏆</span><div class="tag">Your Commission</div><div class="val mono">${money(commission)}</div></div>
+  </div>
+  <div class="card"><h3>This month (${month})</h3>
+    ${thisMonth.length ? entriesTableHTML(thisMonth,{allowEditDelete:false,showOwner:false}) : `<div class="empty"><div class="ic">🗒️</div>No orders yet this month.</div>`}
+  </div>`;
+}
+
+function overviewAdminHTML(){
+  const list = state.orders;
+  const sales = sumField(list,'amountTotal');
+  const received = list.reduce((s,o)=>s+sumPayments(o),0);
+  const remaining = sales - received;
+  const commission = list.reduce((s,o)=>s+orderCommission(o),0);
+  const users = state.users.filter(u=>u.role==='user');
+  const perUser = users.map(u=>{
+    const uo = list.filter(o=>o.username===u.username);
+    return { u, count:uo.length, total:sumField(uo,'amountTotal'), received: uo.reduce((s,o)=>s+sumPayments(o),0), comm: uo.reduce((s,o)=>s+orderCommission(o),0) };
+  }).sort((a,b)=>b.total-a.total);
+  return `
+  <div class="topbar"><div><h2>Admin Overview</h2><p>Company-wide totals across every user, updated the moment anyone records an entry.</p></div></div>
+  <div class="cards">
+    <div class="stat navy"><span class="ic2">📦</span><div class="tag">Total Orders</div><div class="val">${list.length}</div></div>
+    <div class="stat gold"><span class="ic2">💰</span><div class="tag">Total Sales Amount</div><div class="val mono">${money(sales)}</div></div>
+    <div class="stat teal"><span class="ic2">✅</span><div class="tag">Received So Far</div><div class="val mono">${money(received)}</div></div>
+    <div class="stat coral"><span class="ic2">⏳</span><div class="tag">Remaining Balance</div><div class="val mono">${money(remaining)}</div></div>
+    <div class="stat emerald"><span class="ic2">🏆</span><div class="tag">Commission Payable</div><div class="val mono">${money(commission)}</div></div>
+  </div>
+  <div class="card">
+    <h3>Users summary</h3>
+    <table><thead><tr><th>User</th><th>Orders</th><th>Total Sales</th><th>Received</th><th>Commission</th><th></th></tr></thead><tbody>
+    ${perUser.length? perUser.map(r=>`
+      <tr><td><strong>${esc(r.u.username)}</strong></td><td>${r.count}</td>
+      <td class="mono">${money(r.total)}</td><td class="mono">${money(r.received)}</td><td class="mono chip emerald">${money(r.comm)}</td>
+      <td><button class="btn btn-outline btn-sm" onclick="openUserDetail('${esc(r.u.username)}')">View orders</button></td></tr>`).join('')
+      : `<tr><td colspan="6" class="empty">No users added yet. Go to Manage Users.</td></tr>`}
+    </tbody></table>
+  </div>`;
+}
+
+function openUserDetail(username){ state.view='allEntries'; state.reportUserFilter=username; renderApp(); }
+
+/* ============================================================
+   ADD ENTRY — new order OR next payment on an existing company
+   ============================================================ */
+function addEntryHTML(){
+  const companies = [...new Set(myOrders().map(o=>o.company))];
+  return `
+  <div class="topbar"><div><h2>Add Finance Entry</h2><p>Type a company name — if it already has an open order, you'll add the next payment to it automatically. Otherwise you'll start a new order.</p></div></div>
+  <div class="card" style="max-width:640px;">
+    <div class="field"><label>Company name</label>
+      <input id="f_company" list="companyList" placeholder="Start typing or pick an existing company..." oninput="checkCompanyMatch()">
+      <datalist id="companyList">${companies.map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
+    </div>
+    <div id="entryDynamicArea"></div>
+  </div>`;
+}
+
+function checkCompanyMatch(){
+  const input = document.getElementById('f_company');
+  const area = document.getElementById('entryDynamicArea');
+  if(!input || !area) return;
+  const val = input.value.trim();
+  const match = state.orders.find(o=>o.username===state.session.username && o.company.toLowerCase()===val.toLowerCase() && orderBalance(o) > 0.001);
+  area.innerHTML = (val && match) ? existingOrderPanel(match) : newOrderPanel();
+}
+
+function newOrderPanel(){
+  return `
+  <div class="match-panel new"><strong>New order</strong> — no open order found for this company yet. Fill in the details below.</div>
+  <div class="row">
+    <div class="field"><label>Category</label>
+      <div style="display:flex;gap:8px;">
+        <select id="f_category" style="flex:1;">${state.services.map(c=>`<option>${esc(c)}</option>`).join('')}</select>
+        <button type="button" class="btn btn-outline btn-sm" onclick="openServicesModal()">+ Add Service</button>
+      </div>
+    </div>
+    <div class="field"><label>Order date</label><input id="f_date" type="date" value="${todayStr()}"></div>
+  </div>
+  <div class="field"><label>Description (what it's for, details)</label><textarea id="f_desc" rows="3" placeholder="What this order covers..."></textarea></div>
+  <div class="row">
+    <div class="field"><label>Client WhatsApp number (optional)</label><input id="f_phone" placeholder="e.g. +974XXXXXXXX"></div>
+    <div class="field"><label>Client email (optional)</label><input id="f_email" type="email" placeholder="client@example.com"></div>
+  </div>
+  <div class="row">
+    <div class="field"><label>Amount total</label><input id="f_total" type="number" step="0.01" oninput="updateNewOrderPreview()"></div>
+    <div class="field"><label>1st payment</label><input id="f_pay1" type="number" step="0.01" oninput="updateNewOrderPreview()"></div>
+    <div class="field"><label>Remaining balance</label><input id="f_balance_preview" class="mono" value="0.00" disabled></div>
+  </div>
+  <div class="note">Commission on payments received will be calculated at ${state.session.commissionPct!=null?state.session.commissionPct:state.config.globalCommissionPct}%.</div>
+  <button class="btn btn-emerald" onclick="submitNewOrder()">Save Order &amp; 1st Payment</button>
+  `;
+}
+
+function updateNewOrderPreview(){
+  const t=parseFloat(document.getElementById('f_total').value)||0;
+  const p=parseFloat(document.getElementById('f_pay1').value)||0;
+  document.getElementById('f_balance_preview').value = money(t-p);
+}
+
+async function submitNewOrder(){
+  const company = document.getElementById('f_company').value.trim();
+  const category = document.getElementById('f_category').value;
+  const date = document.getElementById('f_date').value;
+  const description = document.getElementById('f_desc').value.trim();
+  const clientPhone = document.getElementById('f_phone').value.trim();
+  const clientEmail = document.getElementById('f_email').value.trim();
+  const amountTotal = parseFloat(document.getElementById('f_total').value)||0;
+  const pay1 = parseFloat(document.getElementById('f_pay1').value)||0;
+  if(!company || !date){ alert('Company name and date are required.'); return; }
+  try{
+    const order = await api('POST','/api/orders',{ company, category, date, description, clientPhone, clientEmail, amountTotal, firstPayment: pay1 });
+    state.orders.push(order);
+    switchView('myEntries');
+  }catch(e){ alert(e.message); }
+}
+
+
+function existingOrderPanel(order){
+  const bal = orderBalance(order);
+  const nth = order.payments.length + 1;
+  const ordn = ['1st','2nd','3rd','4th','5th','6th','7th','8th'][nth-1] || (nth+'th');
+  return `
+  <div class="match-panel">
+    <strong>Existing order found for ${esc(order.company)}</strong>
+    <div style="margin-top:6px;">Category: <b>${esc(order.category)}</b> &nbsp;·&nbsp; Amount total: <b class="mono">${money(order.amountTotal)}</b> &nbsp;·&nbsp; Paid so far: <b class="mono">${money(sumPayments(order))}</b> &nbsp;·&nbsp; Remaining: <b class="mono">${money(bal)}</b></div>
+  </div>
+  <div class="row">
+    <div class="field"><label>${ordn} payment amount</label><input id="f_paynext" type="number" step="0.01" max="${bal}"></div>
+    <div class="field"><label>Payment date</label><input id="f_paynextdate" type="date" value="${todayStr()}"></div>
+  </div>
+  <button class="btn btn-emerald" onclick="submitNextPayment('${order.id}')">Save ${ordn} Payment</button>
+  `;
+}
+
+async function submitNextPayment(orderId){
+  const amt = parseFloat(document.getElementById('f_paynext').value)||0;
+  const date = document.getElementById('f_paynextdate').value;
+  if(amt<=0 || !date){ alert('Enter a valid payment amount and date.'); return; }
+  try{
+    const updated = await api('POST',`/api/orders/${orderId}/payments`,{ amount:amt, date });
+    const idx = state.orders.findIndex(o=>o.id===orderId);
+    if(idx>=0) state.orders[idx] = updated;
+    switchView('myEntries');
+  }catch(e){ alert(e.message); }
+}
+
+/* ============================================================
+   PAYMENT / ORDER MODALS (used from tables directly)
+   ============================================================ */
+function closeModal(){ document.getElementById('modalBg').classList.remove('show'); }
+
+function openAddPaymentModal(id){
+  const order = state.orders.find(o=>o.id===id);
+  const bal = orderBalance(order);
+  document.getElementById('modalBody').innerHTML = `
+    <h3>Add payment — ${esc(order.company)}</h3>
+    <p class="hint">Remaining balance: <b class="mono">${money(bal)}</b></p>
+    <div class="field"><label>Payment amount</label><input id="m_amt" type="number" step="0.01"></div>
+    <div class="field"><label>Payment date</label><input id="m_date" type="date" value="${todayStr()}"></div>
+    <div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">Cancel</button><button class="btn btn-emerald" onclick="submitModalPayment('${id}')">Save Payment</button></div>
+  `;
+  document.getElementById('modalBg').classList.add('show');
+}
+async function submitModalPayment(id){
+  const amt=parseFloat(document.getElementById('m_amt').value)||0;
+  const date=document.getElementById('m_date').value;
+  if(amt<=0||!date){ alert('Enter a valid amount and date.'); return; }
+  try{
+    const updated = await api('POST',`/api/orders/${id}/payments`,{ amount:amt, date });
+    const idx = state.orders.findIndex(o=>o.id===id);
+    if(idx>=0) state.orders[idx] = updated;
+    closeModal(); renderView();
+  }catch(e){ alert(e.message); }
+}
+
+async function deletePayment(orderId, idx){
+  if(!confirm('Remove this payment record?')) return;
+  try{
+    const updated = await api('DELETE',`/api/orders/${orderId}/payments/${idx}`);
+    const i = state.orders.findIndex(o=>o.id===orderId);
+    if(i>=0) state.orders[i] = updated;
+    renderView();
+  }catch(e){ alert(e.message); }
+}
+
+function openEditOrderModal(id){
+  const o = state.orders.find(x=>x.id===id);
+  document.getElementById('modalBody').innerHTML = `
+    <h3>Edit order — ${esc(o.company)}</h3>
+    <div class="field"><label>Company name</label><input id="m_company" value="${esc(o.company)}"></div>
+    <div class="row">
+      <div class="field"><label>Category</label>
+        <div style="display:flex;gap:8px;"><select id="m_category" style="flex:1;">${state.services.map(c=>`<option ${o.category===c?'selected':''}>${esc(c)}</option>`).join('')}</select>
+        <button type="button" class="btn btn-outline btn-sm" onclick="openServicesModal(true)">+ Add</button></div>
+      </div>
+      <div class="field"><label>Order date</label><input id="m_date" type="date" value="${o.date}"></div>
+    </div>
+    <div class="field"><label>Description</label><textarea id="m_desc" rows="3">${esc(o.description)}</textarea></div>
+    <div class="row">
+      <div class="field"><label>Client WhatsApp number</label><input id="m_phone" value="${esc(o.clientPhone||'')}" placeholder="e.g. +974XXXXXXXX"></div>
+      <div class="field"><label>Client email</label><input id="m_email" type="email" value="${esc(o.clientEmail||'')}" placeholder="client@example.com"></div>
+    </div>
+    <div class="field"><label>Amount total</label><input id="m_total" type="number" step="0.01" value="${o.amountTotal}"></div>
+    <div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">Cancel</button><button class="btn btn-emerald" onclick="submitEditOrder('${id}')">Save</button></div>
+  `;
+  document.getElementById('modalBg').classList.add('show');
+}
+async function submitEditOrder(id){
+  const payload = {
+    company: document.getElementById('m_company').value.trim(),
+    category: document.getElementById('m_category').value,
+    date: document.getElementById('m_date').value,
+    description: document.getElementById('m_desc').value.trim(),
+    clientPhone: document.getElementById('m_phone').value.trim(),
+    clientEmail: document.getElementById('m_email').value.trim(),
+    amountTotal: parseFloat(document.getElementById('m_total').value)||0,
+  };
+  try{
+    const updated = await api('PUT',`/api/orders/${id}`, payload);
+    const idx = state.orders.findIndex(o=>o.id===id);
+    if(idx>=0) state.orders[idx] = updated;
+    closeModal(); renderView();
+  }catch(e){ alert(e.message); }
+}
+
+async function deleteOrder(id){
+  if(!confirm('Delete this entire order and all its payments? This cannot be undone.')) return;
+  try{
+    await api('DELETE',`/api/orders/${id}`);
+    state.orders = state.orders.filter(o=>o.id!==id);
+    renderView();
+  }catch(e){ alert(e.message); }
+}
+
+/* ============================================================
+   SERVICES MANAGER  ("+ Add Service" instead of a fixed dropdown)
+   ============================================================ */
+function openServicesModal(){ renderServicesModalBody(); document.getElementById('modalBg').classList.add('show'); }
+function renderServicesModalBody(){
+  document.getElementById('modalBody').innerHTML = `
+    <h3>Services / Categories</h3>
+    <p class="hint">Add a new service to use as a category, or remove ones you no longer need.</p>
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <input id="svc_new" placeholder="e.g. Consulting Fees" style="flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;" onkeydown="if(event.key==='Enter')addService()">
+      <button class="btn btn-emerald" onclick="addService()">Add</button>
+    </div>
+    <div>${state.services.map((s,i)=>`<span class="svc-chip chip ${catColor(s)}">${esc(s)} <span class="x" onclick="deleteService(${i})">&times;</span></span>`).join('')}</div>
+    <div class="modal-actions"><button class="btn btn-outline" onclick="closeModal();renderView()">Done</button></div>
+  `;
+}
+async function addService(){
+  const v = document.getElementById('svc_new').value.trim();
+  if(!v) return;
+  try{
+    await api('POST','/api/services',{ name:v });
+    state.services.push(v);
+    renderServicesModalBody(); refreshCategorySelects();
+  }catch(e){ alert(e.message); }
+}
+async function deleteService(i){
+  if(!confirm('Remove this service?')) return;
+  const name = state.services[i];
+  try{
+    await api('DELETE',`/api/services/${encodeURIComponent(name)}`);
+    state.services.splice(i,1);
+    renderServicesModalBody(); refreshCategorySelects();
+  }catch(e){ alert(e.message); }
+}
+function refreshCategorySelects(){
+  ['f_category','m_category'].forEach(id=>{
+    const sel = document.getElementById(id);
+    if(sel){ const cur = sel.value; sel.innerHTML = state.services.map(c=>`<option ${cur===c?'selected':''}>${esc(c)}</option>`).join(''); }
+  });
+}
+
+/* ============================================================
+   COMMENTS (shared by all order views)
+   ============================================================ */
+function toggleComments(id){ const row = document.getElementById('crow_'+id); row.style.display = row.style.display==='none' ? 'table-row' : 'none'; }
+function commentsHTML(o){
+  return `<div class="comments-box">
+    ${o.comments.length? o.comments.map(c=>`<div class="comment"><span class="who">${esc(c.by)}</span><span class="when">${new Date(c.ts).toLocaleString()}</span><div>${esc(c.text)}</div></div>`).join('') : `<div style="color:var(--muted);font-size:12px;">No comments yet.</div>`}
+    <div class="comment-form">
+      <textarea id="cmt_${o.id}" placeholder="Add a comment on this order..."></textarea>
+      <button class="btn btn-gold btn-sm" onclick="addComment('${o.id}')">Post</button>
+    </div>
+  </div>`;
+}
+async function addComment(id){
+  const ta = document.getElementById('cmt_'+id);
+  const text = ta.value.trim();
+  if(!text) return;
+  try{
+    const updated = await api('POST',`/api/orders/${id}/comments`,{ text });
+    const idx = state.orders.findIndex(o=>o.id===id);
+    if(idx>=0) state.orders[idx] = updated;
+    renderView();
+    setTimeout(()=>{ const row=document.getElementById('crow_'+id); if(row) row.style.display='table-row'; },0);
+  }catch(e){ alert(e.message); }
+}
+
+/* ============================================================
+   CLIENT CONTACT — WhatsApp & Email (admin dashboard only)
+   ============================================================ */
+function waLink(o){
+  const digits = (o.clientPhone||'').replace(/[^\d+]/g,'').replace(/^\+/,'');
+  if(!digits) return null;
+  const msg = encodeURIComponent(`Hello, this is regarding your order with ${o.company}. Total: ${money(o.amountTotal)}, remaining balance: ${money(orderBalance(o))}.`);
+  return `https://wa.me/${digits}?text=${msg}`;
+}
+function mailLink(o){
+  if(!o.clientEmail) return null;
+  const subject = encodeURIComponent(`Regarding your order — ${o.company}`);
+  const body = encodeURIComponent(`Hello,\n\nThis is regarding your order with us (${o.company}).\nTotal amount: ${money(o.amountTotal)}\nRemaining balance: ${money(orderBalance(o))}\n\nThank you.`);
+  return `mailto:${o.clientEmail}?subject=${subject}&body=${body}`;
+}
+function contactButtonsHTML(o){
+  if(state.session.role!=='admin') return '';
+  const wa = waLink(o), mail = mailLink(o);
+  return `
+    <a class="btn btn-sm" style="background:#25D366;color:#fff;" href="${wa||'javascript:void(0)'}" target="_blank" rel="noopener"
+       onclick="${wa?'':"alert('Add a client WhatsApp number for this order first (Edit).');return false;"}">📱 WhatsApp</a>
+    <a class="btn btn-sm" style="background:#4A6FE0;color:#fff;" href="${mail||'javascript:void(0)'}"
+       onclick="${mail?'':"alert('Add a client email for this order first (Edit).');return false;"}">✉️ Email</a>`;
+}
+
+/* ============================================================
+   ORDERS TABLE  (used by overview, my/all entries, by-category)
+   ============================================================ */
+function entriesTableHTML(list, opts){
+  opts = opts || {};
+  if(!list.length) return `<div class="empty"><div class="ic">🗒️</div>No orders to show.</div>`;
+  const ordn = ['1st','2nd','3rd','4th','5th','6th','7th','8th'];
+  return `<table><thead><tr>
+    ${opts.showOwner?'<th>User</th>':''}
+    <th>Order Date</th><th>Company</th><th>Category</th><th>Description</th>
+    <th>Total</th><th>Payments</th><th>Remaining</th><th>Commission</th><th></th>
+  </tr></thead><tbody>
+  ${list.map(o=>{
+    const bal = orderBalance(o), comm = orderCommission(o);
+    return `
+    <tr>
+      ${opts.showOwner?`<td><strong>${esc(o.username)}</strong></td>`:''}
+      <td class="mono">${o.date}</td>
+      <td><strong>${esc(o.company)}</strong>${(o.clientPhone||o.clientEmail)?`<div style="font-size:10.5px;color:var(--muted);margin-top:2px;">${o.clientPhone?esc(o.clientPhone):''}${o.clientPhone&&o.clientEmail?' · ':''}${o.clientEmail?esc(o.clientEmail):''}</div>`:''}</td>
+      <td><span class="chip ${catColor(o.category)}">${esc(o.category)}</span></td>
+      <td style="max-width:200px;">${esc(o.description)||'<span style="color:#aaa">—</span>'}</td>
+      <td class="mono">${money(o.amountTotal)}</td>
+      <td><div class="paylist">
+        ${o.payments.length? o.payments.map((p,i)=>`<div class="payitem"><span>${ordn[i]||(i+1)+'th'} • ${money(p.amount)} • ${p.date}</span>${opts.allowEditDelete!==false?`<span class="del no-print" onclick="deletePayment('${o.id}',${i})">&times;</span>`:''}</div>`).join('') : `<span style="color:var(--muted);font-size:11px;">No payments yet</span>`}
+        ${opts.allowEditDelete!==false && bal>0.001 ? `<button class="btn btn-outline btn-sm no-print" style="margin-top:4px;" onclick="openAddPaymentModal('${o.id}')">+ Payment</button>`:''}
+      </div></td>
+      <td class="mono"><span class="chip ${bal>0.001?'coral':'emerald'}">${money(bal)}</span></td>
+      <td class="mono chip gold">${money(comm)} <span style="opacity:.6">(${o.commissionPct}%)</span></td>
+      <td class="no-print">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          ${opts.allowEditDelete!==false ? `<button class="btn btn-outline btn-sm" onclick="openEditOrderModal('${o.id}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteOrder('${o.id}')">Delete</button>`:''}
+          ${contactButtonsHTML(o)}
+          <span class="toggle-comments" onclick="toggleComments('${o.id}')">💬 ${o.comments.length}</span>
+        </div>
+      </td>
+    </tr>
+    <tr id="crow_${o.id}" style="display:none;"><td colspan="10" style="background:#FAFBFD;">${commentsHTML(o)}</td></tr>
+    `;
+  }).join('')}
+  </tbody></table>`;
+}
+
+function searchRowHTML(withUserFilter){
+  const users = state.users.filter(u=>u.role==='user');
+  return `<div class="search-row">
+    <input placeholder="Search by company name..." value="${esc(state.searchQuery)}" oninput="state.searchQuery=this.value;renderView()" style="flex:1;">
+    <select onchange="state.searchCategory=this.value;renderView()">
+      <option value="all" ${state.searchCategory==='all'?'selected':''}>All categories</option>
+      ${state.services.map(c=>`<option ${state.searchCategory===c?'selected':''}>${esc(c)}</option>`).join('')}
+    </select>
+    ${withUserFilter?`<select onchange="state.reportUserFilter=this.value;renderView()">
+      <option value="all" ${state.reportUserFilter==='all'?'selected':''}>All users</option>
+      ${users.map(u=>`<option value="${esc(u.username)}" ${state.reportUserFilter===u.username?'selected':''}>${esc(u.username)}</option>`).join('')}
+    </select>`:''}
+  </div>`;
+}
+
+function applySearch(list){
+  let out = list;
+  if(state.searchQuery.trim()) out = out.filter(o=>o.company.toLowerCase().includes(state.searchQuery.trim().toLowerCase()));
+  if(state.searchCategory!=='all') out = out.filter(o=>o.category===state.searchCategory);
+  return out;
+}
+
+function myEntriesHTML(){
+  const sorted = applySearch(myOrders()).sort((a,b)=>b.date.localeCompare(a.date));
+  return `
+  <div class="topbar"><div><h2>My Orders</h2><p>Every company you've recorded, with its full payment history.</p></div>
+    <button class="btn btn-outline no-print" onclick="window.print()">🖨️ Print</button></div>
+  <div class="card">${searchRowHTML(false)}${entriesTableHTML(sorted,{allowEditDelete:true, showOwner:false})}</div>`;
+}
+
+function allEntriesHTML(){
+  let list = state.reportUserFilter==='all' ? state.orders : state.orders.filter(o=>o.username===state.reportUserFilter);
+  list = applySearch(list);
+  const sorted = [...list].sort((a,b)=>b.date.localeCompare(a.date));
+  return `
+  <div class="topbar"><div><h2>All Orders</h2><p>Every record from every user — search by company name or category to see full payment details.</p></div>
+    <button class="btn btn-outline no-print" onclick="window.print()">🖨️ Print</button></div>
+  <div class="card">${searchRowHTML(true)}${entriesTableHTML(sorted,{allowEditDelete:true, showOwner:true})}</div>`;
+}
+
+/* ============================================================
+   REPORTS — Daily / Monthly / Annual (grouped by payment date)
+   ============================================================ */
+function flattenPayments(orders){
+  let out=[];
+  orders.forEach(o=>{
+    (o.payments||[]).forEach((p,i)=>{
+      out.push({ orderId:o.id, username:o.username, company:o.company, category:o.category, date:p.date, amount:p.amount, index:i+1, commissionPct:o.commissionPct, commissionAmount: p.amount*((o.commissionPct||0)/100) });
+    });
+  });
+  return out;
+}
+function paymentsTableHTML(records, opts){
+  opts = opts||{};
+  if(!records.length) return `<div class="empty"><div class="ic">📭</div>No payments recorded for this period.</div>`;
+  return `<table><thead><tr>${opts.showOwner?'<th>User</th>':''}<th>Date</th><th>Company</th><th>Category</th><th>Payment #</th><th>Amount</th><th>Commission</th></tr></thead><tbody>
+  ${records.map(r=>`<tr>${opts.showOwner?`<td><strong>${esc(r.username)}</strong></td>`:''}<td class="mono">${r.date}</td><td>${esc(r.company)}</td><td><span class="chip ${catColor(r.category)}">${esc(r.category)}</span></td><td>${r.index}</td><td class="mono">${money(r.amount)}</td><td class="mono chip gold">${money(r.commissionAmount)}</td></tr>`).join('')}
+  </tbody></table>`;
+}
+
+function reportsHTML(){
+  const isAdmin = state.session.role==='admin';
+  const users = state.users.filter(u=>u.role==='user');
+  const base = isAdmin
+    ? (state.reportUserFilter==='all' ? state.orders : state.orders.filter(o=>o.username===state.reportUserFilter))
+    : myOrders();
+  const records = flattenPayments(base);
+  const period = state.reportPeriod;
+  let groups = {};
+  records.forEach(r=>{
+    let key = period==='daily' ? r.date : period==='monthly' ? r.date.slice(0,7) : r.date.slice(0,4);
+    groups[key] = groups[key] || [];
+    groups[key].push(r);
+  });
+  const keys = Object.keys(groups).sort().reverse();
+  return `
+  <div class="topbar"><div><h2>${isAdmin?'Reports — All Users':'My Reports'}</h2><p>Payments grouped by when they were received — printable.</p></div>
+    <button class="btn btn-outline no-print" onclick="window.print()">🖨️ Print report</button></div>
+  ${isAdmin?`<div class="field userpicker" style="max-width:280px;">
+      <label>User</label>
+      <select onchange="state.reportUserFilter=this.value;renderView()">
+        <option value="all" ${state.reportUserFilter==='all'?'selected':''}>All users</option>
+        ${users.map(u=>`<option value="${esc(u.username)}" ${state.reportUserFilter===u.username?'selected':''}>${esc(u.username)}</option>`).join('')}
+      </select>
+    </div>`:''}
+  <div class="tabs no-print">
+    ${['daily','monthly','annual'].map(p=>`<div class="tab ${period===p?'active':''}" onclick="state.reportPeriod='${p}';renderView()">${p[0].toUpperCase()+p.slice(1)}</div>`).join('')}
+  </div>
+  ${keys.length? keys.map(k=>{
+      const recs = groups[k];
+      return `<div class="card">
+        <h3>${k} <span style="font-weight:400;color:var(--muted);font-size:13px;">— ${recs.length} payments · Received ${money(sumField(recs,'amount'))} · Commission ${money(sumField(recs,'commissionAmount'))}</span></h3>
+        ${paymentsTableHTML(recs,{showOwner:isAdmin})}
+      </div>`;
+    }).join('') : `<div class="empty"><div class="ic">📭</div>No payments found for this view.</div>`}
+  `;
+}
+
+/* ============================================================
+   BY CATEGORY (admin) — full multi-payment order detail per group
+   ============================================================ */
+function byCategoryHTML(){
+  const groups = {};
+  state.orders.forEach(o=>{ groups[o.category]=groups[o.category]||[]; groups[o.category].push(o); });
+  const keys = Object.keys(groups).sort();
+  return `
+  <div class="topbar"><div><h2>By Category</h2><p>Every order grouped by service/category, across every user.</p></div>
+    <button class="btn btn-outline no-print" onclick="window.print()">🖨️ Print</button></div>
+  ${keys.length? keys.map(k=>{
+    const list = groups[k];
+    return `<div class="card"><h3><span class="chip ${catColor(k)}">${esc(k)}</span> <span style="font-weight:400;color:var(--muted);font-size:13px;">— ${list.length} orders · Total ${money(sumField(list,'amountTotal'))}</span></h3>
+    ${entriesTableHTML(list,{allowEditDelete:true, showOwner:true})}</div>`;
+  }).join('') : `<div class="empty"><div class="ic">🗂️</div>No orders recorded yet.</div>`}`;
+}
+
+/* ============================================================
+   MANAGE USERS (admin)
+   ============================================================ */
+function manageUsersHTML(){
+  const users = state.users.filter(u=>u.role==='user');
+  return `
+  <div class="topbar"><div><h2>Manage Users</h2><p>Add users, fix login mistakes, and set commission overrides.</p></div></div>
+
+  <div class="card" style="max-width:620px;">
+    <h3>Add a new user</h3>
+    <div class="row">
+      <div class="field"><label>Username</label><input id="nu_user" placeholder="e.g. jane"></div>
+      <div class="field"><label>Password</label><input id="nu_pass" placeholder="Set a password"></div>
+      <div class="field"><label>Commission % override (optional)</label><input id="nu_comm" type="number" step="0.5" placeholder="Leave blank to use global %"></div>
+    </div>
+    <button class="btn btn-emerald" onclick="addUser()">Add User</button>
+  </div>
+
+  <div class="card">
+    <h3>Global commission rate</h3>
+    <div class="row" style="align-items:flex-end;">
+      <div class="field" style="max-width:200px;"><label>Applies to users without an override</label><input id="globalComm" type="number" step="0.5" value="${state.config.globalCommissionPct}"></div>
+      <button class="btn btn-gold" style="height:44px;" onclick="saveGlobalCommission()">Save rate</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>All users (${users.length})</h3>
+    <p class="hint" style="margin-top:-6px;">Passwords are stored securely and can't be viewed — only reset. Leave the password box blank to keep a user's current password unchanged.</p>
+    <table><thead><tr><th>Username</th><th>Reset password</th><th>Commission %</th><th>Orders</th><th></th></tr></thead><tbody>
+    ${users.length ? users.map(u=>{
+      const count = state.orders.filter(o=>o.username===u.username).length;
+      return `<tr>
+        <td><input id="eu_${u.username}_user" value="${esc(u.username)}" class="mono" style="width:120px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;"></td>
+        <td><input id="eu_${u.username}_pass" placeholder="(unchanged)" class="mono" style="width:130px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;"></td>
+        <td><input id="eu_${u.username}_comm" type="number" step="0.5" value="${u.commissionPct!=null?u.commissionPct:''}" placeholder="global" style="width:80px;padding:6px 8px;border:1px solid var(--border);border-radius:6px;"></td>
+        <td>${count}</td>
+        <td style="white-space:nowrap;">
+          <button class="btn btn-outline btn-sm" onclick="saveUserEdit('${esc(u.username)}')">Save</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteUser('${esc(u.username)}')">Delete</button>
+        </td>
+      </tr>`;
+    }).join('') : `<tr><td colspan="5" class="empty">No users yet — add one above.</td></tr>`}
+    </tbody></table>
+  </div>`;
+}
+
+async function addUser(){
+  const u = document.getElementById('nu_user').value.trim();
+  const p = document.getElementById('nu_pass').value;
+  const commRaw = document.getElementById('nu_comm').value;
+  const comm = commRaw==='' ? null : parseFloat(commRaw);
+  if(!u || !p){ alert('Username and password are required.'); return; }
+  try{
+    await api('POST','/api/users',{ username:u, password:p, commissionPct: comm });
+    state.users = await api('GET','/api/users');
+    renderView();
+  }catch(e){ alert(e.message); }
+}
+
+async function saveUserEdit(oldUsername){
+  const newUser = document.getElementById(`eu_${oldUsername}_user`).value.trim();
+  const newPass = document.getElementById(`eu_${oldUsername}_pass`).value;
+  const commRaw = document.getElementById(`eu_${oldUsername}_comm`).value;
+  const newComm = commRaw==='' ? null : parseFloat(commRaw);
+  if(!newUser){ alert('Username cannot be empty.'); return; }
+  try{
+    await api('PUT',`/api/users/${encodeURIComponent(oldUsername)}`,{ username:newUser, password: newPass||undefined, commissionPct:newComm });
+    state.users = await api('GET','/api/users');
+    if(newUser !== oldUsername) state.orders = await api('GET','/api/orders');
+    renderView();
+  }catch(e){ alert(e.message); }
+}
+
+async function deleteUser(username){
+  if(!confirm(`Delete user "${username}"? Their orders will remain in the records but stay attributed to this username.`)) return;
+  try{
+    await api('DELETE',`/api/users/${encodeURIComponent(username)}`);
+    state.users = state.users.filter(x=>x.username!==username);
+    renderView();
+  }catch(e){ alert(e.message); }
+}
+
+async function saveGlobalCommission(){
+  const v = parseFloat(document.getElementById('globalComm').value)||0;
+  try{
+    await api('PUT','/api/config',{ globalCommissionPct: v });
+    state.config.globalCommissionPct = v;
+    renderView();
+  }catch(e){ alert(e.message); }
+}
+
+/* ============================================================
+   SETTINGS (both roles)
+   ============================================================ */
+function settingsHTML(){
+  return `
+  <div class="topbar"><div><h2>Settings</h2><p>Update your own login details, or manage the shared services list.</p></div></div>
+  <div class="card" style="max-width:480px;">
+    <h3>Change username / password</h3>
+    <div id="setMsg"></div>
+    <div class="field"><label>Current password</label><input id="st_current" type="password"></div>
+    <div class="field"><label>New username</label><input id="st_user" value="${esc(state.session.username)}"></div>
+    <div class="field"><label>New password (leave blank to keep current)</label><input id="st_pass" type="password"></div>
+    <button class="btn btn-emerald" onclick="saveOwnSettings()">Save changes</button>
+  </div>
+  <div class="card" style="max-width:480px;">
+    <h3>Services / Categories</h3>
+    <p class="hint" style="margin-top:-4px;">Manage the list of services offered to everyone in the Add Entry form.</p>
+    <button class="btn btn-outline" onclick="openServicesModal()">Manage Services</button>
+  </div>
+  <div class="note" style="max-width:480px;">This is a live web application — every user and the admin are connected to the same server over the internet, so entries reach the admin within a few seconds automatically. The 🔄 Sync Now button in the sidebar pulls the very latest data on demand.</div>
+  ${state.session.role==='admin' ? `
+  <div class="card" style="max-width:480px;">
+    <h3>Backup</h3>
+    <p class="hint" style="margin-top:-4px;">Download a full snapshot of every user, order, and service as a JSON file.</p>
+    <a class="btn btn-gold" href="/api/export" download="ledger-backup.json">⬇️ Download Backup</a>
+  </div>`:''}
+  `;
+}
+
+async function saveOwnSettings(){
+  const current = document.getElementById('st_current').value;
+  const newUser = document.getElementById('st_user').value.trim();
+  const newPass = document.getElementById('st_pass').value;
+  const msg = document.getElementById('setMsg');
+  if(!newUser){ msg.innerHTML = `<div class="msg error">Username cannot be empty.</div>`; return; }
+  try{
+    const result = await api('PUT','/api/me',{ currentPassword: current, username:newUser, password: newPass||undefined });
+    state.session.username = result.username;
+    msg.innerHTML = `<div class="msg ok">Saved. You are now signed in as ${esc(result.username)}.</div>`;
+    document.getElementById('sideUserName').textContent = result.username;
+  }catch(e){ msg.innerHTML = `<div class="msg error">${esc(e.message)}</div>`; }
+}
+</script>
+</body>
+</html>
