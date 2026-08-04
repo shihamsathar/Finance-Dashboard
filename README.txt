@@ -58,6 +58,7 @@ FILES IN THIS PACKAGE
 ----------------------
   app.py            Flask server: routes, database, auth
   dashboard.html     the dashboard interface, served by app.py
+  logo.png            your AL SHAHEEN GROUPS logo, served by app.py
   requirements.txt   Python packages needed (includes the Postgres driver)
   Procfile           tells the host how to start the app
   render.yaml         one-file deployment blueprint for Render.com,
