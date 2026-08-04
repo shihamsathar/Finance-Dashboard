@@ -149,6 +149,12 @@ CREATE TABLE IF NOT EXISTS orders(
 );
 CREATE TABLE IF NOT EXISTS services(name TEXT PRIMARY KEY);
 CREATE TABLE IF NOT EXISTS config(key TEXT PRIMARY KEY, value TEXT);
+CREATE TABLE IF NOT EXISTS links(
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    url TEXT NOT NULL,
+    created_at BIGINT
+);
 """
 
 
@@ -337,6 +343,47 @@ def api_delete_service(u, name):
 
 
 # ============================================================
+# QUICK LINKS — admin-only shortcut buttons to future modules
+# (invoice database, profit & loss, other platforms, etc.)
+# ============================================================
+@app.route("/api/links")
+@admin_required
+def api_list_links(u):
+    conn = get_db()
+    rows = conn.execute("SELECT * FROM links ORDER BY created_at").fetchall()
+    conn.close()
+    return jsonify([{"id": r["id"], "name": r["name"], "url": r["url"]} for r in rows])
+
+
+@app.route("/api/links", methods=["POST"])
+@admin_required
+def api_add_link(u):
+    data = request.get_json(force=True)
+    name = (data.get("name") or "").strip()
+    url = (data.get("url") or "").strip()
+    if not name or not url:
+        return jsonify({"error": "Name and URL are required"}), 400
+    if not (url.startswith("http://") or url.startswith("https://")):
+        url = "https://" + url
+    conn = get_db()
+    lid = uuid.uuid4().hex
+    conn.execute("INSERT INTO links(id,name,url,created_at) VALUES (?,?,?,?)", (lid, name, url, int(time.time() * 1000)))
+    conn.commit()
+    conn.close()
+    return jsonify({"id": lid, "name": name, "url": url})
+
+
+@app.route("/api/links/<link_id>", methods=["DELETE"])
+@admin_required
+def api_delete_link(u, link_id):
+    conn = get_db()
+    conn.execute("DELETE FROM links WHERE id=?", (link_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({"ok": True})
+
+
+# ============================================================
 # USERS (admin only, except self-service /api/me)
 # ============================================================
 def user_public(row):
@@ -513,10 +560,14 @@ def api_edit_order(u, order_id):
         conn.close()
         return jsonify({"error": "Not found"}), 404
     now = int(time.time() * 1000)
+    # Only an admin may change the commission % locked to a specific order.
+    commission_pct = row["commission_pct"]
+    if u["role"] == "admin" and data.get("commissionPct") not in (None, ""):
+        commission_pct = float(data.get("commissionPct"))
     conn.execute(
-        "UPDATE orders SET company=?, description=?, category=?, date=?, amount_total=?, client_phone=?, client_email=?, updated_at=? WHERE id=?",
+        "UPDATE orders SET company=?, description=?, category=?, date=?, amount_total=?, commission_pct=?, client_phone=?, client_email=?, updated_at=? WHERE id=?",
         (data.get("company", row["company"]), data.get("description", row["description"]), data.get("category", row["category"]),
-         data.get("date", row["date"]), float(data.get("amountTotal", row["amount_total"]) or 0),
+         data.get("date", row["date"]), float(data.get("amountTotal", row["amount_total"]) or 0), commission_pct,
          data.get("clientPhone", row["client_phone"]), data.get("clientEmail", row["client_email"]), now, order_id),
     )
     conn.commit()
@@ -625,6 +676,35 @@ def api_export(u):
 @app.route("/")
 def index():
     return send_from_directory(BASE_DIR, "dashboard.html")
+
+
+@app.route("/logo.png")
+def logo():
+    return send_from_directory(BASE_DIR, "logo.png")
+
+
+# ============================================================
+# RESET (disabled unless RESET_SECRET is set as an environment
+# variable). Wipes every table so the app shows the fresh "Create
+# Admin Account" screen again, exactly like a brand-new install.
+# Visit /api/dev-reset?key=YOUR_SECRET in a browser to trigger it.
+# Meant as a one-time recovery tool — remove the RESET_SECRET
+# environment variable afterward so this can't be triggered again.
+# ============================================================
+@app.route("/api/dev-reset", methods=["GET", "POST"])
+def dev_reset():
+    secret = os.environ.get("RESET_SECRET")
+    if not secret:
+        return jsonify({"error": "Reset is disabled. Set a RESET_SECRET environment variable to enable it."}), 403
+    if request.args.get("key") != secret:
+        return jsonify({"error": "Wrong or missing key."}), 403
+    conn = get_db()
+    for table in ("orders", "users", "services", "links", "config"):
+        conn.execute(f"DELETE FROM {table}")
+    conn.executemany("INSERT INTO services(name) VALUES (?)", [(s,) for s in DEFAULT_SERVICES])
+    conn.commit()
+    conn.close()
+    return jsonify({"ok": True, "message": "Everything has been cleared. Visit the app's homepage to create a new admin account, just like a fresh install."})
 
 
 if __name__ == "__main__":

@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ledger &amp; Commission — Finance Dashboard</title>
+<title>AL SHAHEEN GROUPS — Finance Dashboard</title>
+<link rel="icon" type="image/png" href="/logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -30,11 +31,12 @@
     background:radial-gradient(circle at 20% 20%, var(--navy-light), var(--navy-deep) 70%);padding:24px;}
   .auth-card{background:var(--card);width:100%;max-width:420px;border-radius:14px;padding:36px 34px;
     box-shadow:0 30px 60px rgba(0,0,0,.35);border-top:4px solid var(--gold);}
-  .auth-brand{display:flex;align-items:center;gap:10px;margin-bottom:22px;}
-  .auth-brand .mark{width:38px;height:38px;border-radius:8px;background:var(--navy);color:var(--gold);
-    display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:700;font-size:18px;}
-  .auth-brand h1{font-size:19px;color:var(--navy);}
-  .auth-brand span{font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;}
+  .auth-brand{display:flex;align-items:center;gap:12px;margin-bottom:22px;}
+  .auth-brand .mark{width:46px;height:46px;border-radius:8px;background:#fff;border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;overflow:hidden;padding:3px;}
+  .auth-brand .mark img{width:100%;height:100%;object-fit:contain;}
+  .auth-brand h1{font-size:17px;color:var(--navy);letter-spacing:.02em;}
+  .auth-brand span{font-size:10.5px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;}
   .field{margin-bottom:16px;}
   .field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;}
   .field input,.field select,.field textarea{width:100%;padding:11px 12px;border:1.5px solid var(--border);
@@ -66,11 +68,12 @@
   .shell{display:grid;grid-template-columns:250px 1fr;min-height:100vh;}
   .sidebar{background:var(--navy-deep);color:#cfd8ea;display:flex;flex-direction:column;position:relative;}
   .sidebar::after{content:"";position:absolute;top:0;bottom:0;right:0;width:4px;background:linear-gradient(var(--gold),var(--teal),var(--emerald));}
-  .side-brand{padding:26px 22px 20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;gap:10px;align-items:center;}
-  .side-brand .mark{width:34px;height:34px;border-radius:7px;background:var(--gold);color:var(--navy-deep);
-    display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:700;}
-  .side-brand h1{color:#fff;font-size:16px;}
-  .side-brand span{font-size:10px;color:#8fa0c2;letter-spacing:.08em;text-transform:uppercase;}
+  .side-brand{padding:22px 22px 18px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;gap:12px;align-items:center;}
+  .side-brand .mark{width:42px;height:42px;border-radius:8px;background:#fff;overflow:hidden;padding:3px;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .side-brand .mark img{width:100%;height:100%;object-fit:contain;}
+  .side-brand h1{color:#fff;font-size:14.5px;line-height:1.25;}
+  .side-brand span{font-size:9.5px;color:#8fa0c2;letter-spacing:.07em;text-transform:uppercase;}
   .side-user{padding:16px 22px;border-bottom:1px solid rgba(255,255,255,.08);}
   .side-user .name{color:#fff;font-weight:600;font-size:14px;}
   .side-user .role{font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
@@ -168,7 +171,12 @@
     .main{padding:0;}
     body{background:#fff;}
     .card{box-shadow:none;border:1px solid #ccc;}
+    .print-header{display:flex !important;}
   }
+  .print-header{display:none;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:14px;border-bottom:2px solid var(--gold);}
+  .print-header img{width:44px;height:44px;object-fit:contain;}
+  .print-header .name{font-family:'Fraunces',serif;font-size:17px;color:var(--navy);font-weight:700;}
+  .print-header .tag{font-size:10.5px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;}
 </style>
 </head>
 <body>
@@ -184,8 +192,8 @@
   <div class="shell">
     <aside class="sidebar">
       <div class="side-brand">
-        <div class="mark">L</div>
-        <div><h1>Ledger &amp; Co.</h1><span>Finance Dashboard</span></div>
+        <div class="mark"><img src="/logo.png" alt="AL SHAHEEN GROUPS logo"></div>
+        <div><h1>AL SHAHEEN GROUPS</h1><span>General Services · Finance Dashboard</span></div>
       </div>
       <div class="side-user">
         <div class="name" id="sideUserName"></div>
@@ -198,7 +206,10 @@
       </div>
       <div class="side-credit">Software created by <b>O2 Nexus Global</b><br>otngqa@gmail.com</div>
     </aside>
-    <main class="main" id="mainContent"></main>
+    <main class="main">
+      <div class="print-header"><img src="/logo.png" alt="AL SHAHEEN GROUPS"><div><div class="name">AL SHAHEEN GROUPS</div><div class="tag">General Services · Finance Report</div></div></div>
+      <div id="mainContent"></div>
+    </main>
   </div>
 </div>
 
@@ -235,14 +246,15 @@ async function pullLatestData(){
   if(!state.session) return false;
   try{
     const calls = [ api('GET','/api/orders'), api('GET','/api/services'), api('GET','/api/config') ];
-    if(state.session.role==='admin') calls.push(api('GET','/api/users'));
+    if(state.session.role==='admin') calls.push(api('GET','/api/users'), api('GET','/api/links'));
     const results = await Promise.all(calls);
-    const [orders, services, config, users] = results;
+    const [orders, services, config, users, links] = results;
     let changed = false;
     if(JSON.stringify(orders)!==JSON.stringify(state.orders)){ state.orders = orders; changed = true; }
     if(JSON.stringify(services)!==JSON.stringify(state.services)){ state.services = services; changed = true; }
     if(config.globalCommissionPct !== state.config.globalCommissionPct){ state.config.globalCommissionPct = config.globalCommissionPct; changed = true; }
     if(users && JSON.stringify(users)!==JSON.stringify(state.users)){ state.users = users; changed = true; }
+    if(links && JSON.stringify(links)!==JSON.stringify(state.links)){ state.links = links; changed = true; }
     if(changed) renderView();
     return changed;
   }catch(e){ console.error('sync error', e); return false; }
@@ -258,7 +270,7 @@ async function manualSync(){
 }
 
 let state = {
-  users: [], orders: [], services: [],
+  users: [], orders: [], services: [], links: [],
   config: { globalCommissionPct: 5, setupDone: false },
   session: null,
   view: 'overview',
@@ -301,12 +313,13 @@ boot();
 
 async function loadAllData(){
   const calls = [ api('GET','/api/orders'), api('GET','/api/services'), api('GET','/api/config') ];
-  if(state.session.role==='admin') calls.push(api('GET','/api/users'));
+  if(state.session.role==='admin') calls.push(api('GET','/api/users'), api('GET','/api/links'));
   const results = await Promise.all(calls);
   state.orders = results[0];
   state.services = results[1];
   state.config.globalCommissionPct = results[2].globalCommissionPct;
   if(results[3]) state.users = results[3];
+  if(results[4]) state.links = results[4];
 }
 
 /* ============================================================
@@ -316,7 +329,7 @@ function renderSetup(){
   document.getElementById('authScreen').style.display='flex';
   document.getElementById('appScreen').style.display='none';
   document.getElementById('authCard').innerHTML = `
-    <div class="auth-brand"><div class="mark">L</div><div><h1>Welcome</h1><span>First-time setup</span></div></div>
+    <div class="auth-brand"><div class="mark"><img src="/logo.png" alt="AL SHAHEEN GROUPS logo"></div><div><h1>AL SHAHEEN GROUPS</h1><span>Finance Dashboard — First-time setup</span></div></div>
     <div id="authMsg"></div>
     <p class="hint">Create the administrator account. You will use this username and password to sign in and manage every user from here on. You can change it later from Settings.</p>
     <div class="field"><label>Admin username</label><input id="su_user" placeholder="e.g. admin"></div>
@@ -346,7 +359,7 @@ function renderLogin(okMsg){
   document.getElementById('authScreen').style.display='flex';
   document.getElementById('appScreen').style.display='none';
   document.getElementById('authCard').innerHTML = `
-    <div class="auth-brand"><div class="mark">L</div><div><h1>Sign in</h1><span>Ledger &amp; Commission</span></div></div>
+    <div class="auth-brand"><div class="mark"><img src="/logo.png" alt="AL SHAHEEN GROUPS logo"></div><div><h1>AL SHAHEEN GROUPS</h1><span>Finance Dashboard — Sign in</span></div></div>
     <div id="authMsg">${okMsg?`<div class="msg ok">${esc(okMsg)}</div>`:''}</div>
     <div class="field"><label>Username</label><input id="li_user" placeholder="Your username"></div>
     <div class="field"><label>Password</label><input id="li_pass" type="password" placeholder="Your password" onkeydown="if(event.key==='Enter')doLogin()"></div>
@@ -461,30 +474,123 @@ function overviewAdminHTML(){
   const received = list.reduce((s,o)=>s+sumPayments(o),0);
   const remaining = sales - received;
   const commission = list.reduce((s,o)=>s+orderCommission(o),0);
+  const today = todayStr();
+  const todaysPayments = flattenPayments(list).filter(r=>r.date===today);
+  const dailyIncome = sumField(todaysPayments,'amount');
   const users = state.users.filter(u=>u.role==='user');
   const perUser = users.map(u=>{
     const uo = list.filter(o=>o.username===u.username);
-    return { u, count:uo.length, total:sumField(uo,'amountTotal'), received: uo.reduce((s,o)=>s+sumPayments(o),0), comm: uo.reduce((s,o)=>s+orderCommission(o),0) };
+    const uToday = todaysPayments.filter(r=>r.username===u.username);
+    return { u, count:uo.length, total:sumField(uo,'amountTotal'), received: uo.reduce((s,o)=>s+sumPayments(o),0), comm: uo.reduce((s,o)=>s+orderCommission(o),0), today: sumField(uToday,'amount') };
   }).sort((a,b)=>b.total-a.total);
   return `
   <div class="topbar"><div><h2>Admin Overview</h2><p>Company-wide totals across every user, updated the moment anyone records an entry.</p></div></div>
   <div class="cards">
     <div class="stat navy"><span class="ic2">📦</span><div class="tag">Total Orders</div><div class="val">${list.length}</div></div>
     <div class="stat gold"><span class="ic2">💰</span><div class="tag">Total Sales Amount</div><div class="val mono">${money(sales)}</div></div>
+    <div class="stat purple"><span class="ic2">📅</span><div class="tag">Daily Income (Today)</div><div class="val mono">${money(dailyIncome)}</div></div>
     <div class="stat teal"><span class="ic2">✅</span><div class="tag">Received So Far</div><div class="val mono">${money(received)}</div></div>
     <div class="stat coral"><span class="ic2">⏳</span><div class="tag">Remaining Balance</div><div class="val mono">${money(remaining)}</div></div>
     <div class="stat emerald"><span class="ic2">🏆</span><div class="tag">Commission Payable</div><div class="val mono">${money(commission)}</div></div>
   </div>
   <div class="card">
     <h3>Users summary</h3>
-    <table><thead><tr><th>User</th><th>Orders</th><th>Total Sales</th><th>Received</th><th>Commission</th><th></th></tr></thead><tbody>
+    <table><thead><tr><th>User</th><th>Orders</th><th>Total Sales</th><th>Received</th><th>Today's Collection</th><th>Commission</th><th></th></tr></thead><tbody>
     ${perUser.length? perUser.map(r=>`
       <tr><td><strong>${esc(r.u.username)}</strong></td><td>${r.count}</td>
-      <td class="mono">${money(r.total)}</td><td class="mono">${money(r.received)}</td><td class="mono chip emerald">${money(r.comm)}</td>
+      <td class="mono">${money(r.total)}</td><td class="mono">${money(r.received)}</td>
+      <td class="mono">${r.today>0?`<span class="chip purple">${money(r.today)}</span>`:'<span style="color:var(--muted)">—</span>'}</td>
+      <td class="mono chip emerald">${money(r.comm)}</td>
       <td><button class="btn btn-outline btn-sm" onclick="openUserDetail('${esc(r.u.username)}')">View orders</button></td></tr>`).join('')
-      : `<tr><td colspan="6" class="empty">No users added yet. Go to Manage Users.</td></tr>`}
+      : `<tr><td colspan="7" class="empty">No users added yet. Go to Manage Users.</td></tr>`}
+    </tbody></table>
+  </div>
+  ${monthlySummaryHTML(list, users)}
+  <div class="card">
+    <h3>More Tools</h3>
+    <p class="hint" style="margin-top:-4px;">Quick-link buttons to other platforms you use — an invoice system, profit &amp; loss tool, or anything else. Add a link any time; it opens in a new tab.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+      ${state.links.map(l=>`<a class="btn btn-outline" href="${esc(l.url)}" target="_blank" rel="noopener">🔗 ${esc(l.name)}</a>`).join('')}
+      <button class="btn btn-gold" onclick="openLinksModal()">+ Add Link</button>
+    </div>
+  </div>`;
+}
+
+/* ============================================================
+   MONTHLY SUMMARY — a separate, additional breakdown per user for
+   the current calendar month only. Nothing here is stored specially
+   for "the month" — it's simply filtered live from the same order
+   and payment data by today's year-month, which is why it naturally
+   reads as zero right after midnight on the 1st of a new month and
+   builds back up from record 1 as the new month's entries come in.
+   ============================================================ */
+function monthlySummaryHTML(list, users){
+  const monthKey = todayStr().slice(0,7);
+  const monthLabel = new Date().toLocaleString(undefined,{month:'long', year:'numeric'});
+  const dayOfMonth = new Date().getDate();
+  const rows = users.map(u=>{
+    const monthOrders = list.filter(o=>o.username===u.username && o.date && o.date.startsWith(monthKey));
+    const recordsCount = monthOrders.length;
+    const monthSales = sumField(monthOrders,'amountTotal');
+    const monthReceivedOnThoseOrders = monthOrders.reduce((s,o)=>s+sumPayments(o),0);
+    const monthPayments = flattenPayments(list.filter(o=>o.username===u.username)).filter(r=>r.date.startsWith(monthKey));
+    const cashInThisMonth = sumField(monthPayments,'amount');
+    const avgPerDay = dayOfMonth>0 ? cashInThisMonth/dayOfMonth : 0;
+    const monthBalance = monthSales - monthReceivedOnThoseOrders;
+    return { u, recordsCount, monthSales, cashInThisMonth, avgPerDay, monthBalance };
+  });
+  const totalRecords = sumField(rows,'recordsCount');
+  const totalCashIn = sumField(rows,'cashInThisMonth');
+  const totalAvgPerDay = dayOfMonth>0 ? totalCashIn/dayOfMonth : 0;
+  const totalBalance = sumField(rows,'monthBalance');
+  return `
+  <div class="card">
+    <h3>Monthly Summary — ${monthLabel} <span style="font-weight:400;color:var(--muted);font-size:12.5px;">(resets to zero at the start of each month, builds back up from record 1)</span></h3>
+    <table><thead><tr><th>User</th><th>Records Entered</th><th>Amount Received</th><th>Avg / Day Received</th><th>Balance</th></tr></thead><tbody>
+    ${rows.length? rows.map(r=>`
+      <tr><td><strong>${esc(r.u.username)}</strong></td>
+      <td>${r.recordsCount}</td>
+      <td class="mono">${money(r.cashInThisMonth)}</td>
+      <td class="mono">${money(r.avgPerDay)}</td>
+      <td class="mono"><span class="chip ${r.monthBalance>0.001?'coral':'emerald'}">${money(r.monthBalance)}</span></td></tr>`).join('')
+      : `<tr><td colspan="5" class="empty">No users added yet.</td></tr>`}
+    ${rows.length? `<tr style="font-weight:700;background:#F7F9FC;"><td>All Users</td><td>${totalRecords}</td><td class="mono">${money(totalCashIn)}</td><td class="mono">${money(totalAvgPerDay)}</td><td class="mono">${money(totalBalance)}</td></tr>`:''}
     </tbody></table>
   </div>`;
+}
+
+function openLinksModal(){ renderLinksModalBody(); document.getElementById('modalBg').classList.add('show'); }
+function renderLinksModalBody(){
+  document.getElementById('modalBody').innerHTML = `
+    <h3>More Tools — Quick Links</h3>
+    <p class="hint">Add a shortcut button for a future platform — an invoice database, profit &amp; loss account, or any other tool.</p>
+    <div class="row">
+      <div class="field"><label>Button label</label><input id="lk_name" placeholder="e.g. Invoice System"></div>
+      <div class="field"><label>Link (URL)</label><input id="lk_url" placeholder="e.g. https://invoices.example.com"></div>
+    </div>
+    <button class="btn btn-emerald" onclick="addLink()">Add Link</button>
+    <div class="divider"></div>
+    ${state.links.length? state.links.map(l=>`<div class="svc-chip chip navy">🔗 ${esc(l.name)} <span class="x" onclick="deleteLink('${l.id}')">&times;</span></div>`).join('') : `<p class="hint">No links added yet.</p>`}
+    <div class="modal-actions"><button class="btn btn-outline" onclick="closeModal();renderView()">Done</button></div>
+  `;
+}
+async function addLink(){
+  const name = document.getElementById('lk_name').value.trim();
+  const url = document.getElementById('lk_url').value.trim();
+  if(!name || !url){ alert('Both a label and a URL are required.'); return; }
+  try{
+    const link = await api('POST','/api/links',{ name, url });
+    state.links.push(link);
+    renderLinksModalBody();
+  }catch(e){ alert(e.message); }
+}
+async function deleteLink(id){
+  if(!confirm('Remove this link?')) return;
+  try{
+    await api('DELETE',`/api/links/${id}`);
+    state.links = state.links.filter(l=>l.id!==id);
+    renderLinksModalBody();
+  }catch(e){ alert(e.message); }
 }
 
 function openUserDetail(username){ state.view='allEntries'; state.reportUserFilter=username; renderApp(); }
@@ -635,6 +741,7 @@ async function deletePayment(orderId, idx){
 
 function openEditOrderModal(id){
   const o = state.orders.find(x=>x.id===id);
+  const isAdmin = state.session.role==='admin';
   document.getElementById('modalBody').innerHTML = `
     <h3>Edit order — ${esc(o.company)}</h3>
     <div class="field"><label>Company name</label><input id="m_company" value="${esc(o.company)}"></div>
@@ -650,7 +757,10 @@ function openEditOrderModal(id){
       <div class="field"><label>Client WhatsApp number</label><input id="m_phone" value="${esc(o.clientPhone||'')}" placeholder="e.g. +974XXXXXXXX"></div>
       <div class="field"><label>Client email</label><input id="m_email" type="email" value="${esc(o.clientEmail||'')}" placeholder="client@example.com"></div>
     </div>
-    <div class="field"><label>Amount total</label><input id="m_total" type="number" step="0.01" value="${o.amountTotal}"></div>
+    <div class="row">
+      <div class="field"><label>Amount total</label><input id="m_total" type="number" step="0.01" value="${o.amountTotal}"></div>
+      ${isAdmin ? `<div class="field"><label>Commission % for this record</label><input id="m_comm" type="number" step="0.1" value="${o.commissionPct}"></div>` : ''}
+    </div>
     <div class="modal-actions"><button class="btn btn-outline" onclick="closeModal()">Cancel</button><button class="btn btn-emerald" onclick="submitEditOrder('${id}')">Save</button></div>
   `;
   document.getElementById('modalBg').classList.add('show');
@@ -665,6 +775,8 @@ async function submitEditOrder(id){
     clientEmail: document.getElementById('m_email').value.trim(),
     amountTotal: parseFloat(document.getElementById('m_total').value)||0,
   };
+  const commEl = document.getElementById('m_comm');
+  if(commEl) payload.commissionPct = parseFloat(commEl.value)||0;
   try{
     const updated = await api('PUT',`/api/orders/${id}`, payload);
     const idx = state.orders.findIndex(o=>o.id===id);
