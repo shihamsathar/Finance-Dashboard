@@ -483,6 +483,16 @@ function overviewAdminHTML(){
     const uToday = todaysPayments.filter(r=>r.username===u.username);
     return { u, count:uo.length, total:sumField(uo,'amountTotal'), received: uo.reduce((s,o)=>s+sumPayments(o),0), comm: uo.reduce((s,o)=>s+orderCommission(o),0), today: sumField(uToday,'amount') };
   }).sort((a,b)=>b.total-a.total);
+  // -- NEW: company-wide "this month" figures, for the new tiles below --
+  const monthKey = today.slice(0,7);
+  const monthLabel = new Date().toLocaleString(undefined,{month:'long', year:'numeric'});
+  const dayOfMonth = new Date().getDate();
+  const monthOrders = list.filter(o=>o.date && o.date.startsWith(monthKey));
+  const monthRecords = monthOrders.length;
+  const monthPayments = flattenPayments(list).filter(r=>r.date.startsWith(monthKey));
+  const monthReceived = sumField(monthPayments,'amount');
+  const monthAvgPerDay = dayOfMonth>0 ? monthReceived/dayOfMonth : 0;
+  const monthBalance = sumField(monthOrders,'amountTotal') - monthOrders.reduce((s,o)=>s+sumPayments(o),0);
   return `
   <div class="topbar"><div><h2>Admin Overview</h2><p>Company-wide totals across every user, updated the moment anyone records an entry.</p></div></div>
   <div class="cards">
@@ -492,6 +502,13 @@ function overviewAdminHTML(){
     <div class="stat teal"><span class="ic2">✅</span><div class="tag">Received So Far</div><div class="val mono">${money(received)}</div></div>
     <div class="stat coral"><span class="ic2">⏳</span><div class="tag">Remaining Balance</div><div class="val mono">${money(remaining)}</div></div>
     <div class="stat emerald"><span class="ic2">🏆</span><div class="tag">Commission Payable</div><div class="val mono">${money(commission)}</div></div>
+  </div>
+  <h3 style="margin:4px 0 12px;color:var(--navy);font-size:15px;">This Month — ${monthLabel} <span style="font-weight:400;color:var(--muted);font-size:12px;">(resets to zero at month end, builds back up from record 1 on the 1st)</span></h3>
+  <div class="cards">
+    <div class="stat gold"><span class="ic2">🗓️</span><div class="tag">Records Entered This Month</div><div class="val">${monthRecords}</div></div>
+    <div class="stat teal"><span class="ic2">💵</span><div class="tag">Amount Received This Month</div><div class="val mono">${money(monthReceived)}</div></div>
+    <div class="stat purple"><span class="ic2">📊</span><div class="tag">Avg / Day This Month</div><div class="val mono">${money(monthAvgPerDay)}</div></div>
+    <div class="stat coral"><span class="ic2">⚖️</span><div class="tag">Balance This Month</div><div class="val mono">${money(monthBalance)}</div></div>
   </div>
   <div class="card">
     <h3>Users summary</h3>
