@@ -396,6 +396,7 @@ function navItemsFor(role){
   if(role==='admin'){
     return [
       ['overview','📊','Overview'],
+      ['monthly','📅','This Month'],
       ['allEntries','📒','All Orders'],
       ['reports','🖨️','Reports'],
       ['byCategory','🗂️','By Category'],
@@ -430,6 +431,7 @@ function renderView(){
   const c = document.getElementById('mainContent');
   const role = state.session.role;
   if(state.view==='overview') c.innerHTML = role==='admin' ? overviewAdminHTML() : overviewUserHTML();
+  else if(state.view==='monthly') c.innerHTML = monthlyViewHTML();
   else if(state.view==='addEntry') c.innerHTML = addEntryHTML();
   else if(state.view==='myEntries') c.innerHTML = myEntriesHTML();
   else if(state.view==='allEntries') c.innerHTML = allEntriesHTML();
@@ -468,6 +470,51 @@ function overviewUserHTML(){
   </div>`;
 }
 
+// Shared by Overview's tiles and the dedicated "This Month" tab below —
+// one calculation, used in both places, so they can never drift out of
+// sync with each other. Purely computed from order/payment dates each
+// time it's called, so it always reads zero on day 1 of a new month and
+// builds back up automatically — nothing to reset by hand, nothing that
+// can get stuck.
+function computeMonthlyTotals(list){
+  const today = todayStr();
+  const monthKey = today.slice(0,7);
+  const monthLabel = new Date().toLocaleString(undefined,{month:'long', year:'numeric'});
+  const dayOfMonth = new Date().getDate();
+  const monthOrders = list.filter(o=>o.date && o.date.startsWith(monthKey));
+  const monthRecords = monthOrders.length;
+  const monthPayments = flattenPayments(list).filter(r=>r.date.startsWith(monthKey));
+  const monthReceived = sumField(monthPayments,'amount');
+  const monthAvgPerDay = dayOfMonth>0 ? monthReceived/dayOfMonth : 0;
+  const monthBalance = sumField(monthOrders,'amountTotal') - monthOrders.reduce((s,o)=>s+sumPayments(o),0);
+  return { monthKey, monthLabel, dayOfMonth, monthOrders, monthRecords, monthPayments, monthReceived, monthAvgPerDay, monthBalance };
+}
+
+function monthlyTilesHTML(mt){
+  return `
+  <div class="cards">
+    <div class="stat gold"><span class="ic2">🗓️</span><div class="tag">Records Entered This Month</div><div class="val">${mt.monthRecords}</div></div>
+    <div class="stat teal"><span class="ic2">💵</span><div class="tag">Amount Received This Month</div><div class="val mono">${money(mt.monthReceived)}</div></div>
+    <div class="stat purple"><span class="ic2">📊</span><div class="tag">Avg / Day This Month</div><div class="val mono">${money(mt.monthAvgPerDay)}</div></div>
+    <div class="stat coral"><span class="ic2">⚖️</span><div class="tag">Balance This Month</div><div class="val mono">${money(mt.monthBalance)}</div></div>
+  </div>`;
+}
+
+function monthlyViewHTML(){
+  const list = state.orders;
+  const users = state.users.filter(u=>u.role==='user');
+  const mt = computeMonthlyTotals(list);
+  return `
+  <div class="topbar"><div><h2>This Month — ${mt.monthLabel}</h2><p>Only ${mt.monthLabel}'s transactions. Automatically resets to zero on the 1st of next month and builds back up from record 1 — nothing to do by hand.</p></div>
+    <button class="btn btn-outline no-print" onclick="window.print()">🖨️ Print</button></div>
+  ${monthlyTilesHTML(mt)}
+  ${monthlySummaryHTML(list, users)}
+  <div class="card">
+    <h3>${mt.monthLabel} — All Transactions</h3>
+    ${mt.monthOrders.length ? entriesTableHTML([...mt.monthOrders].sort((a,b)=>b.date.localeCompare(a.date)), {allowEditDelete:true, showOwner:true}) : `<div class="empty"><div class="ic">📭</div>No orders recorded yet this month.</div>`}
+  </div>`;
+}
+
 function overviewAdminHTML(){
   const list = state.orders;
   const sales = sumField(list,'amountTotal');
@@ -483,16 +530,7 @@ function overviewAdminHTML(){
     const uToday = todaysPayments.filter(r=>r.username===u.username);
     return { u, count:uo.length, total:sumField(uo,'amountTotal'), received: uo.reduce((s,o)=>s+sumPayments(o),0), comm: uo.reduce((s,o)=>s+orderCommission(o),0), today: sumField(uToday,'amount') };
   }).sort((a,b)=>b.total-a.total);
-  // -- NEW: company-wide "this month" figures, for the new tiles below --
-  const monthKey = today.slice(0,7);
-  const monthLabel = new Date().toLocaleString(undefined,{month:'long', year:'numeric'});
-  const dayOfMonth = new Date().getDate();
-  const monthOrders = list.filter(o=>o.date && o.date.startsWith(monthKey));
-  const monthRecords = monthOrders.length;
-  const monthPayments = flattenPayments(list).filter(r=>r.date.startsWith(monthKey));
-  const monthReceived = sumField(monthPayments,'amount');
-  const monthAvgPerDay = dayOfMonth>0 ? monthReceived/dayOfMonth : 0;
-  const monthBalance = sumField(monthOrders,'amountTotal') - monthOrders.reduce((s,o)=>s+sumPayments(o),0);
+  const mt = computeMonthlyTotals(list);
   return `
   <div class="topbar"><div><h2>Admin Overview</h2><p>Company-wide totals across every user, updated the moment anyone records an entry.</p></div></div>
   <div class="cards">
@@ -503,13 +541,8 @@ function overviewAdminHTML(){
     <div class="stat coral"><span class="ic2">⏳</span><div class="tag">Remaining Balance</div><div class="val mono">${money(remaining)}</div></div>
     <div class="stat emerald"><span class="ic2">🏆</span><div class="tag">Commission Payable</div><div class="val mono">${money(commission)}</div></div>
   </div>
-  <h3 style="margin:4px 0 12px;color:var(--navy);font-size:15px;">This Month — ${monthLabel} <span style="font-weight:400;color:var(--muted);font-size:12px;">(resets to zero at month end, builds back up from record 1 on the 1st)</span></h3>
-  <div class="cards">
-    <div class="stat gold"><span class="ic2">🗓️</span><div class="tag">Records Entered This Month</div><div class="val">${monthRecords}</div></div>
-    <div class="stat teal"><span class="ic2">💵</span><div class="tag">Amount Received This Month</div><div class="val mono">${money(monthReceived)}</div></div>
-    <div class="stat purple"><span class="ic2">📊</span><div class="tag">Avg / Day This Month</div><div class="val mono">${money(monthAvgPerDay)}</div></div>
-    <div class="stat coral"><span class="ic2">⚖️</span><div class="tag">Balance This Month</div><div class="val mono">${money(monthBalance)}</div></div>
-  </div>
+  <h3 style="margin:4px 0 12px;color:var(--navy);font-size:15px;">This Month — ${mt.monthLabel} <span style="font-weight:400;color:var(--muted);font-size:12px;">(full detail on the "This Month" tab in the sidebar)</span></h3>
+  ${monthlyTilesHTML(mt)}
   <div class="card">
     <h3>Users summary</h3>
     <table><thead><tr><th>User</th><th>Orders</th><th>Total Sales</th><th>Received</th><th>Today's Collection</th><th>Commission</th><th></th></tr></thead><tbody>
