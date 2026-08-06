@@ -184,7 +184,7 @@
 <!-- ================= AUTH ================= -->
 <div id="authScreen">
   <div class="auth-card" id="authCard"></div>
-  <div class="app-credit">Software created by <b>O2 Nexus Global</b><br>Contact: <a href="mailto:otngqa@gmail.com">otngqa@gmail.com</a></div>
+  <div class="app-credit">Software created by <b>O2 Nexus Global</b><br>Contact: <a href="mailto:otngqa@gmail.com">otngqa@gmail.com</a><br><span style="opacity:.6;">Build 2026-08-05.2</span></div>
 </div>
 
 <!-- ================= APP ================= -->
@@ -204,7 +204,7 @@
         <button id="syncBtn" class="btn btn-gold" style="width:100%;margin-bottom:8px;justify-content:center;" onclick="manualSync()">🔄 Sync Now</button>
         <button class="btn btn-outline" style="width:100%;color:#fff;border-color:rgba(255,255,255,.25)" onclick="logout()">Sign out</button>
       </div>
-      <div class="side-credit">Software created by <b>O2 Nexus Global</b><br>otngqa@gmail.com</div>
+      <div class="side-credit">Software created by <b>O2 Nexus Global</b><br>otngqa@gmail.com<br><span style="opacity:.6;">Build 2026-08-05.2</span></div>
     </aside>
     <main class="main">
       <div class="print-header"><img src="/logo.png" alt="AL SHAHEEN GROUPS"><div><div class="name">AL SHAHEEN GROUPS</div><div class="tag">General Services · Finance Report</div></div></div>
@@ -397,6 +397,7 @@ function navItemsFor(role){
     return [
       ['overview','📊','Overview'],
       ['monthly','📅','This Month'],
+      ['monthlyDescription','📃','Monthly Description'],
       ['allEntries','📒','All Orders'],
       ['reports','🖨️','Reports'],
       ['byCategory','🗂️','By Category'],
@@ -432,6 +433,7 @@ function renderView(){
   const role = state.session.role;
   if(state.view==='overview') c.innerHTML = role==='admin' ? overviewAdminHTML() : overviewUserHTML();
   else if(state.view==='monthly') c.innerHTML = monthlyViewHTML();
+  else if(state.view==='monthlyDescription') c.innerHTML = monthlyDescriptionHTML();
   else if(state.view==='addEntry') c.innerHTML = addEntryHTML();
   else if(state.view==='myEntries') c.innerHTML = myEntriesHTML();
   else if(state.view==='allEntries') c.innerHTML = allEntriesHTML();
@@ -513,6 +515,72 @@ function monthlyViewHTML(){
     <h3>${mt.monthLabel} — All Transactions</h3>
     ${mt.monthOrders.length ? entriesTableHTML([...mt.monthOrders].sort((a,b)=>b.date.localeCompare(a.date)), {allowEditDelete:true, showOwner:true}) : `<div class="empty"><div class="ic">📭</div>No orders recorded yet this month.</div>`}
   </div>`;
+}
+
+/* ============================================================
+   MONTHLY DESCRIPTION — a separate admin tab. Records, Total
+   Amount, Amount in Advance (each order's 1st payment — up to 2
+   payments per order), Cash In (everything collected this month,
+   including 2nd payments), and Balance. Purely date-driven from
+   live order data, same as "This Month" — reads zero automatically
+   on day 1 of a new month and builds back up from record 1, with
+   nothing to reset by hand.
+   ============================================================ */
+function computeMonthlyDescription(list){
+  const today = todayStr();
+  const monthKey = today.slice(0,7);
+  const monthLabel = new Date().toLocaleString(undefined,{month:'long', year:'numeric'});
+  const monthOrders = list.filter(o=>o.date && o.date.startsWith(monthKey));
+  const monthPayments = flattenPayments(list).filter(r=>r.date.startsWith(monthKey));
+
+  function figuresFor(orders, username){
+    const payments = username ? monthPayments.filter(r=>r.username===username) : monthPayments;
+    const records = orders.length;
+    const totalAmount = sumField(orders,'amountTotal');
+    const advance = sumField(payments.filter(r=>r.index===1),'amount');   // each order's 1st payment, collected this month
+    const cashIn = sumField(payments,'amount');                            // everything collected this month (1st + 2nd + ...)
+    const balance = totalAmount - orders.reduce((s,o)=>s+sumPayments(o),0);
+    return { records, totalAmount, advance, cashIn, balance };
+  }
+
+  const company = figuresFor(monthOrders, null);
+  const users = state.users.filter(u=>u.role==='user');
+  const perUser = users.map(u=>({
+    username: u.username,
+    ...figuresFor(monthOrders.filter(o=>o.username===u.username), u.username)
+  })).sort((a,b)=>b.totalAmount-a.totalAmount);
+
+  return { monthLabel, company, perUser };
+}
+
+function monthlyDescriptionHTML(){
+  const list = state.orders;
+  const md = computeMonthlyDescription(list);
+  const c = md.company;
+  return `
+  <div class="topbar"><div><h2>Monthly Description — ${md.monthLabel}</h2><p>Records, total amount, amount in advance, cash in, and balance — for ${md.monthLabel} only. Resets to zero automatically when the month ends and starts fresh from record 1 on the next month's first day.</p></div>
+    <button class="btn btn-outline no-print" onclick="window.print()">🖨️ Print</button></div>
+  <div class="cards">
+    <div class="stat navy"><span class="ic2">📦</span><div class="tag">Records</div><div class="val">${c.records}</div></div>
+    <div class="stat gold"><span class="ic2">💰</span><div class="tag">Total Amount</div><div class="val mono">${money(c.totalAmount)}</div></div>
+    <div class="stat purple"><span class="ic2">🤝</span><div class="tag">Amount in Advance</div><div class="val mono">${money(c.advance)}</div></div>
+    <div class="stat teal"><span class="ic2">💵</span><div class="tag">Cash In</div><div class="val mono">${money(c.cashIn)}</div></div>
+    <div class="stat coral"><span class="ic2">⚖️</span><div class="tag">Balance</div><div class="val mono">${money(c.balance)}</div></div>
+  </div>
+  <div class="card">
+    <h3>Per user — ${md.monthLabel}</h3>
+    <table><thead><tr><th>User</th><th>Records</th><th>Total Amount</th><th>Amount in Advance</th><th>Cash In</th><th>Balance</th></tr></thead><tbody>
+    ${md.perUser.length ? md.perUser.map(r=>`
+      <tr><td><strong>${esc(r.username)}</strong></td><td>${r.records}</td>
+      <td class="mono">${money(r.totalAmount)}</td>
+      <td class="mono chip purple">${money(r.advance)}</td>
+      <td class="mono chip teal">${money(r.cashIn)}</td>
+      <td class="mono"><span class="chip ${r.balance>0.001?'coral':'emerald'}">${money(r.balance)}</span></td></tr>`).join('')
+      : `<tr><td colspan="6" class="empty">No users yet.</td></tr>`}
+      ${md.perUser.length ? `<tr style="font-weight:700;background:#F7F9FC;"><td>All Users</td><td>${c.records}</td><td class="mono">${money(c.totalAmount)}</td><td class="mono">${money(c.advance)}</td><td class="mono">${money(c.cashIn)}</td><td class="mono">${money(c.balance)}</td></tr>`:''}
+    </tbody></table>
+  </div>
+  <div class="note">"Amount in Advance" is each order's first payment collected this month (a customer can pay in up to two installments). "Cash In" is everything collected this month, including any 2nd payments — so Cash In will be equal to or larger than Amount in Advance.</div>`;
 }
 
 function overviewAdminHTML(){
